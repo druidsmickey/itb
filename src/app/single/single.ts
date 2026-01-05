@@ -1,0 +1,393 @@
+import { Component, OnInit, ChangeDetectorRef, ViewChild } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
+import { HttpClient } from '@angular/common/http';
+import { MatButtonModule } from '@angular/material/button';
+import { MatSidenavModule } from '@angular/material/sidenav';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatInputModule } from '@angular/material/input';
+import { MatRadioModule } from '@angular/material/radio';
+import { MatSidenav } from '@angular/material/sidenav';
+
+interface Horse {
+  horseNum: number;
+  horseName: string;
+  books: number;
+  profitLoss: number;
+  hasSpecial: boolean;
+  hasRule4: boolean;
+  avg: number;
+  isWinner: boolean;
+}
+
+interface Race {
+  raceNum: number;
+  numHorse: number;
+  meetingName: string;
+}
+
+@Component({
+  selector: 'app-single',
+  standalone: true,
+  imports: [
+    CommonModule,
+    FormsModule,
+    MatButtonModule,
+    MatSidenavModule,
+    MatFormFieldModule,
+    MatInputModule,
+    MatRadioModule
+  ],
+  templateUrl: './single.html',
+  styleUrl: './single.css',
+})
+export class Single implements OnInit {
+  private apiUrl = 'http://localhost:3000/api';
+  
+  @ViewChild('sidenav') sidenav!: MatSidenav;
+  
+  races: Race[] = [];
+  selectedRaceNum: number | null = null;
+  horses: Horse[] = [];
+  loading: boolean = false;
+  meetingName: string = '';
+  totalAvg: number = 0;
+  hasWinner: boolean = false;
+  
+  stakeBooksError: string = '';
+  oddsError: string = '';
+  
+  // Cache data to avoid reloading
+  private cachedParams: any[] | null = null;
+  private cachedBets: any[] | null = null;
+  
+  // Betslip form fields
+  betslipHorses: any[] = [];
+  betslipSelectedHorseNum: number | null = null;
+  betslipSelectedHorseName: string = '';
+  clientName: string = '';
+  betType: string = 'sales';
+  oddsType: string = 'f500';
+  stakeBooks: number | null = null;
+  odds: number | null = null;
+  tax: number | null = 5;
+  
+  constructor(private http: HttpClient, private cdr: ChangeDetectorRef) {}
+  
+  ngOnInit() {
+    this.loadSelectedRaces();
+  }
+  
+  loadSelectedRaces() {
+    this.loading = true;
+    this.http.get<any[]>(`${this.apiUrl}/params/selected-races`).subscribe({
+      next: async (races) => {
+        if (races.length === 0) {
+          setTimeout(() => {
+            this.loading = false;
+            this.cdr.detectChanges();
+          }, 0);
+          return;
+        }
+        
+        this.races = races;
+        this.meetingName = races[0].meetingName;
+        
+        // Preload and cache params and bets
+        await this.loadAndCacheData();
+        
+        setTimeout(() => {
+          this.loading = false;
+          this.cdr.detectChanges();
+        }, 0);
+      },
+      error: (error) => {
+        console.error('Error loading races:', error);
+        setTimeout(() => {
+          this.loading = false;
+          this.cdr.detectChanges();
+        }, 0);
+      }
+    });
+  }
+  
+  async loadAndCacheData() {
+    try {
+      // Load params and bets once and cache them
+      const [params, bets] = await Promise.all([
+        this.http.get<any[]>(`${this.apiUrl}/params?meetingName=${encodeURIComponent(this.meetingName)}`).toPromise(),
+        this.http.get<any[]>(`${this.apiUrl}/bets?meetingName=${encodeURIComponent(this.meetingName)}`).toPromise()
+      ]);
+      
+      this.cachedParams = params || [];
+      this.cachedBets = bets || [];
+    } catch (error) {
+      console.error('Error loading data:', error);
+      this.cachedParams = [];
+      this.cachedBets = [];
+    }
+  }
+  
+  selectRace(raceNum: number) {
+    this.selectedRaceNum = raceNum;
+    setTimeout(() => {
+      this.loadRaceData();
+    }, 0);
+  }
+  
+  loadRaceData() {
+    if (!this.selectedRaceNum || !this.cachedParams || !this.cachedBets) return;
+    
+    // Filter params for selected race
+    const raceParams = this.cachedParams.filter(p => p.raceNum === this.selectedRaceNum);
+    
+    // Track special and rule4 dates
+    const specialDates = new Map<number, Date>();
+    const rule4Info: Array<{ date: Date; deduct: number }> = [];
+    
+    // Build horses array with Map for faster lookup
+    const horsesMap = new Map<number, Horse>();
+    
+    raceParams.forEach(param => {
+      if (param.special) {
+        specialDates.set(param.horseNum, new Date(param.special));
+      }
+      
+      if (param.rule4 && param.rule4deduct > 0) {
+        rule4Info.push({
+          date: new Date(param.rule4),
+          deduct: param.rule4deduct
+        });
+      }
+      
+      const horse: Horse = {
+        horseNum: param.horseNum,
+        horseName: param.horseName || `Horse ${param.horseNum}`,
+        books: 0,
+        profitLoss: 0,
+        hasSpecial: !!param.special,
+        hasRule4: !!param.rule4,
+        avg: 0,
+        isWinner: !!param.winner
+      };
+      horsesMap.set(param.horseNum, horse);
+    });
+      
+      // Pre-filter bets and group by horse for efficient processing
+      const betsByHorse = new Map<number, any[]>();
+      const stakesByHorse = new Map<number, number>();
+      let totalStakes = 0;
+      
+      this.cachedBets.forEach(b => {
+        if (b.raceNum !== this.selectedRaceNum || b.cancelled) return;
+        
+        const betTime = new Date(b.betTime || b.createdAt);
+        
+        // Check special dates
+        for (const [horseNum, specialDate] of specialDates.entries()) {
+          if (betTime < specialDate) return;
+        }
+        
+        // Add to total stakes
+        totalStakes += (b.stake || 0);
+        
+        // Group by horse
+        if (!betsByHorse.has(b.horseNum)) {
+          betsByHorse.set(b.horseNum, []);
+          stakesByHorse.set(b.horseNum, 0);
+        }
+        betsByHorse.get(b.horseNum)!.push(b);
+        
+        // Accumulate stakes for this horse
+        stakesByHorse.set(b.horseNum, (stakesByHorse.get(b.horseNum) || 0) + (b.stake || 0));
+        
+        // Add to books
+        const horse = horsesMap.get(b.horseNum);
+        if (horse && b.books) {
+          horse.books += b.books;
+        }
+      });
+      
+      // Calculate P&L and Avg for each horse
+      horsesMap.forEach((horse, horseNum) => {
+        const horseBets = betsByHorse.get(horseNum) || [];
+        const horseStakes = stakesByHorse.get(horseNum) || 0;
+        
+        // Calculate Avg: total stake / total books
+        horse.avg = horse.books > 0 ? horseStakes / horse.books : 0;
+        
+        let totalPayout = 0;
+        horseBets.forEach(bet => {
+          let payout = bet.payout || 0;
+          const betTime = new Date(bet.betTime || bet.createdAt);
+          
+          // Apply only rule4 deductions that occurred AFTER this bet was placed
+          rule4Info.forEach(r4 => {
+            if (betTime < r4.date) {
+              payout = payout * (1 - r4.deduct / 100);
+            }
+          });
+          
+          totalPayout += payout;
+        });
+        
+        horse.profitLoss = totalStakes - totalPayout;
+      });
+      
+      // Calculate total average: sum of all horse averages
+      this.totalAvg = Array.from(horsesMap.values()).reduce((sum, h) => sum + h.avg, 0);
+      
+      // Convert map to sorted array
+      this.horses = Array.from(horsesMap.values()).sort((a, b) => a.horseNum - b.horseNum);
+      this.hasWinner = this.horses.some(h => h.isWinner);
+      
+      // Defer change detection to next cycle to avoid ExpressionChangedAfterItHasBeenCheckedError
+      setTimeout(() => {
+        this.cdr.detectChanges();
+      }, 0);
+  }
+  
+  openBetslip(horse: Horse) {
+    if (!this.selectedRaceNum) return;
+    
+    // Prevent opening betslip if race has a winner
+    if (this.hasWinner) {
+      return;
+    }
+    
+    // Prevent opening betslip for horses with special or rule4
+    if (horse.hasSpecial || horse.hasRule4) {
+      return;
+    }
+    
+    // Set race and horse for betslip
+    this.betslipSelectedHorseNum = horse.horseNum;
+    this.betslipSelectedHorseName = horse.horseName;
+    
+    // Load horses for the selected race in betslip
+    this.betslipHorses = this.horses.map(h => ({
+      horseNum: h.horseNum,
+      horseName: h.horseName,
+      hasSpecial: h.hasSpecial,
+      hasRule4: h.hasRule4
+    }));
+    
+    this.sidenav.open();
+  }
+  
+  selectBetslipHorse(horseNum: number) {
+    // Prevent selection if horse has special or rule4
+    const horse = this.betslipHorses.find(h => h.horseNum === horseNum);
+    if (horse && (horse.hasSpecial || horse.hasRule4)) {
+      return;
+    }
+    
+    this.betslipSelectedHorseNum = horseNum;
+    this.betslipSelectedHorseName = horse ? horse.horseName : '';
+  }
+  
+  onClientNameInput() {
+    this.clientName = this.clientName.toUpperCase();
+  }
+  
+  saveBet() {
+    if (!this.selectedRaceNum) {
+      alert('Please select a race');
+      return;
+    }
+    
+    if (!this.betslipSelectedHorseNum) {
+      alert('Please select a horse');
+      return;
+    }
+    
+    if (!this.clientName) {
+      alert('Please enter a client name');
+      return;
+    }
+    
+    if (!this.stakeBooks || !this.odds) {
+      alert('Please enter odds and stake');
+      return;
+    }
+    
+    const betData: any = {
+      meetingName: this.meetingName,
+      raceNum: this.selectedRaceNum,
+      horseNum: this.betslipSelectedHorseNum,
+      horseName: this.betslipSelectedHorseName,
+      clientName: this.clientName,
+      tax: this.tax,
+      betTime: new Date()
+    };
+    
+    const multiplier = this.betType === 'purchase' ? -1 : 1;
+    
+    if (this.oddsType === 'odds') {
+      betData.odds100 = this.odds;
+      betData.books = ((this.stakeBooks * this.odds) / 50000) * multiplier;
+      betData.stake = this.stakeBooks * multiplier;
+      betData.payout = ((this.odds * this.stakeBooks) / 100) * multiplier;
+    } else {
+      betData.f500 = this.odds;
+      betData.books = this.stakeBooks * multiplier;
+      betData.stake = (this.odds * this.stakeBooks) * multiplier;
+      betData.payout = (this.stakeBooks * 500) * multiplier;
+    }
+    
+    this.http.post(`${this.apiUrl}/bets`, betData).subscribe({
+      next: async (response) => {
+        alert('Bet saved successfully!');
+        
+        // Reload cached bets to update chart
+        const bets = await this.http.get<any[]>(`${this.apiUrl}/bets?meetingName=${encodeURIComponent(this.meetingName)}`).toPromise();
+        this.cachedBets = bets || [];
+        
+        this.loadRaceData(); // Reload race data with updated cache
+        setTimeout(() => this.resetBetslipForm(), 0);
+      },
+      error: (error) => {
+        console.error('Error saving bet:', error);
+        alert('Error saving bet. Please try again.');
+      }
+    });
+  }
+  
+  resetBetslipForm() {
+    this.betslipSelectedHorseNum = null;
+    this.betslipSelectedHorseName = '';
+    this.clientName = '';
+    this.stakeBooks = null;
+    this.odds = null;
+    this.tax = 5;
+    this.cdr.detectChanges();
+  }
+
+  validateStakeBooks() {
+    if (this.stakeBooks !== null && this.stakeBooks !== undefined) {
+      if (this.oddsType === 'f500') {
+        if (this.stakeBooks < 0 || this.stakeBooks > 5000) {
+          this.stakeBooks = null;
+        }
+      } else if (this.oddsType === 'odds') {
+        if (this.stakeBooks < 100 || this.stakeBooks > 1000000) {
+          this.stakeBooks = null;
+        }
+      }
+    }
+  }
+
+  validateOdds() {
+    if (this.odds !== null && this.odds !== undefined) {
+      if (this.oddsType === 'f500') {
+        if (this.odds < 0 || this.odds > 470) {
+          this.odds = null;
+        }
+      } else if (this.oddsType === 'odds') {
+        if (this.odds < 115 || this.odds > 10000) {
+          this.odds = null;
+        }
+      }
+    }
+  }
+}

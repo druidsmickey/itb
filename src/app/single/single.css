@@ -1,0 +1,270 @@
+.single-container {
+  padding: 1rem;
+  max-width: 500px;
+  margin: 0 auto;
+}
+
+.single-title {
+  margin: 0 0 1rem 0;
+  font-size: 1.5rem;
+  font-weight: 500;
+  color: #1f2937;
+}
+
+.loading, .no-data, .select-prompt {
+  text-align: center;
+  padding: 2rem;
+  color: #6b7280;
+  font-size: 1rem;
+}
+
+.race-selection {
+  margin-bottom: 1.5rem;
+}
+
+.race-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  justify-content: flex-start;
+}
+
+.race-btn {
+  min-width: 34px;
+  width: 34px;
+  height: 34px;
+  padding: 0;
+  font-size: 0.9rem;
+  border: 1px solid #d1d5db;
+  background: white;
+  color: #374151;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.race-btn:hover {
+  border-color: #9ca3af;
+  background: #f9fafb;
+}
+
+.race-btn.selected {
+  background: #3b82f6;
+  color: white;
+  border-color: #3b82f6;
+  font-weight: 600;
+}
+
+.chart-display {
+  margin-top: 1rem;
+}
+
+.race-title {
+  margin: 0 0 0.75rem 0;
+  font-size: 1.2rem;
+  font-weight: 500;
+  color: #1f2937;
+}
+
+.race-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: white;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.race-table th {
+  background: #f3f4f6;
+  padding: 0.75rem 0.5rem;
+  text-align: left;
+  font-weight: 600;
+  font-size: 0.875rem;
+  color: #374151;
+  border-bottom: 2px solid #e5e7eb;
+}
+
+.race-table td {
+  padding: 0.75rem 0.5rem;
+  border-bottom: 1px solid #e5e7eb;
+  font-size: 0.875rem;
+}
+
+.race-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.race-table tbody tr:hover {
+  background: #f9fafb;
+}
+
+.race-table tbody tr.disabled-row {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.race-table tbody tr.disabled-row:hover {
+  background: white;
+}
+
+.race-table tbody tr:nth-child(even):not(.negative-profit):not(.winner-row) {
+  background: #f0fdf4;
+}
+
+.race-table tbody tr:nth-child(even):not(.negative-profit):not(.winner-row):hover {
+  background: #dcfce7;
+}
+
+.race-table tbody tr.negative-profit {
+  background: #4988C4 !important;
+  color: white;
+}
+
+.race-table tbody tr.negative-profit td {
+  color: white;
+}
+
+.race-table tbody tr.negative-profit:hover {
+  background: #3a73a8 !important;
+}
+
+.horse-name {
+  font-weight: 500;
+  color: #1f2937;
+}
+
+.horse-name.strikethrough {
+  text-decoration: line-through;
+  color: #9ca3af;
+}
+
+.books {
+  text-align: right;
+  color: #374151;
+  font-weight: 500;
+}
+
+.profit-loss {
+  text-align: right;
+  font-weight: 500;
+  color: #374151;
+}
+
+.profit-loss.positive {
+  color: #374151;
+}
+
+.profit-loss.negative {
+  color: #374151;
+}
+
+.avg {
+  text-align: right;
+  font-weight: 500;
+  color: #374151;
+}
+
+.race-table tbody tr.winner-row {
+  background: #1e3a8a !important;
+  color: white;
+  font-weight: 600;
+}
+
+.race-table tbody tr.winner-row td {
+  color: white;
+}
+
+.race-table tbody tr.winner-row:hover {
+  background: #1e40af !important;
+}
+
+/* Sidenav Styles */
+.sidenav-container {
+  width: 100%;
+  height: 100%;
+  min-height: 100vh;
+}
+
+.betslip-sidenav {
+  width: 320px;
+  padding: 1rem;
+  background: #f9fafb;
+}
+
+.betslip-content {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.betslip-content h3 {
+  margin: 0;
+  color: #1976d2;
+  font-size: 1.1rem;
+}
+
+.form-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.full-width {
+  width: 100%;
+}
+
+.radio-group {
+  padding: 4px 0;
+}
+
+.horse-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 3px;
+  margin-bottom: 8px;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.horse-btn {
+  min-width: 32px !important;
+  max-width: 36px !important;
+  height: 32px !important;
+  padding: 0 4px !important;
+  font-size: 0.875rem !important;
+  line-height: 32px !important;
+  flex-shrink: 0;
+  border: 1px solid #ccc;
+  background: white;
+  cursor: pointer;
+}
+
+.horse-btn.selected {
+  background: #1976d2 !important;
+  color: white !important;
+  border-color: #1976d2;
+}
+
+.horse-name-display {
+  font-size: 0.9rem;
+  color: #374151;
+  padding: 0.25rem 0;
+  min-height: 1.5rem;
+  font-weight: 500;
+}
+
+.radio-buttons {
+  display: flex;
+  gap: 12px;
+}
+
+.button-container {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 1rem;
+}
+
+.button-container button {
+  flex: 1;
+}
