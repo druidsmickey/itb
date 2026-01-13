@@ -49,15 +49,27 @@ export class AuthService {
     }
   }
 
+  private lastUpdateTime = 0;
+  private readonly UPDATE_THROTTLE = 10000; // Only update activity every 10 seconds
+
   private setupActivityTracking(): void {
-    window.addEventListener('focus', () => this.updateActivity());
-    window.addEventListener('blur', () => this.updateActivity());
+    const throttledUpdate = () => {
+      const now = Date.now();
+      if (now - this.lastUpdateTime > this.UPDATE_THROTTLE) {
+        this.updateActivity();
+        this.lastUpdateTime = now;
+      }
+    };
 
-    document.addEventListener('mousemove', () => this.updateActivity());
-    document.addEventListener('keypress', () => this.updateActivity());
-    document.addEventListener('click', () => this.updateActivity());
+    window.addEventListener('focus', throttledUpdate);
+    window.addEventListener('blur', throttledUpdate);
 
-    setInterval(() => this.checkActivity(), AUTH_TOKEN_TTL);
+    document.addEventListener('mousemove', throttledUpdate);
+    document.addEventListener('keypress', throttledUpdate);
+    document.addEventListener('click', throttledUpdate);
+    document.addEventListener('scroll', throttledUpdate);
+
+    setInterval(() => this.checkActivity(), 30000); // Check every 30 seconds
   }
 
   private updateActivity(): void {

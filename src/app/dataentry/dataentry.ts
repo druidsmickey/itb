@@ -9,6 +9,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatRadioModule } from '@angular/material/radio';
 import { MatChipsModule } from '@angular/material/chips';
+import { RecentClientsService } from '../services/recent-clients.service';
 
 interface Race {
   raceNum: number;
@@ -57,6 +58,9 @@ export class Dataentry implements OnInit {
   stakeBooksError: string = '';
   oddsError: string = '';
   
+  // Recent clients
+  recentClients: string[] = [];
+  
   // Betslip form
   selectedRaceNum: number | null = null;
   selectedHorseNum: number | null = null;
@@ -76,10 +80,25 @@ export class Dataentry implements OnInit {
   f500: number | null = null;
   payout: number | null = null;
 
-  constructor(private http: HttpClient, private cdr: ChangeDetectorRef) {}
+  constructor(
+    private http: HttpClient, 
+    private cdr: ChangeDetectorRef,
+    private recentClientsService: RecentClientsService
+  ) {}
 
   ngOnInit() {
     this.loadSelectedRaces();
+    this.loadRecentClients();
+  }
+  
+  async loadRecentClients() {
+    this.recentClients = await this.recentClientsService.loadRecentClients();
+    this.cdr.detectChanges();
+  }
+  
+  selectClient(clientName: string) {
+    this.clientName = clientName;
+    this.cdr.detectChanges();
   }
 
   loadSelectedRaces() {
@@ -209,8 +228,10 @@ export class Dataentry implements OnInit {
     }
     
     this.http.post(`${this.apiUrl}/bets`, betData).subscribe({
-      next: (response) => {
+      next: async (response) => {
         alert('Bet saved successfully!');
+        // Reload recent clients from database
+        await this.loadRecentClients();
         setTimeout(() => this.resetForm(), 0);
        },
       error: (error) => {

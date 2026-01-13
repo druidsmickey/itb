@@ -8,6 +8,7 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatRadioModule } from '@angular/material/radio';
 import { MatSidenav } from '@angular/material/sidenav';
+import { RecentClientsService } from '../services/recent-clients.service';
 
 interface Horse {
   horseNum: number;
@@ -61,6 +62,9 @@ export class Single implements OnInit {
   private cachedParams: any[] | null = null;
   private cachedBets: any[] | null = null;
   
+  // Recent clients
+  recentClients: string[] = [];
+  
   // Betslip form fields
   betslipHorses: any[] = [];
   betslipSelectedHorseNum: number | null = null;
@@ -72,10 +76,25 @@ export class Single implements OnInit {
   odds: number | null = null;
   tax: number | null = 5;
   
-  constructor(private http: HttpClient, private cdr: ChangeDetectorRef) {}
+  constructor(
+    private http: HttpClient, 
+    private cdr: ChangeDetectorRef,
+    private recentClientsService: RecentClientsService
+  ) {}
   
   ngOnInit() {
     this.loadSelectedRaces();
+    this.loadRecentClients();
+  }
+  
+  async loadRecentClients() {
+    this.recentClients = await this.recentClientsService.loadRecentClients();
+    this.cdr.detectChanges();
+  }
+  
+  selectClient(clientName: string) {
+    this.clientName = clientName;
+    this.cdr.detectChanges();
   }
   
   loadSelectedRaces() {
@@ -338,6 +357,8 @@ export class Single implements OnInit {
     this.http.post(`${this.apiUrl}/bets`, betData).subscribe({
       next: async (response) => {
         alert('Bet saved successfully!');
+        // Reload recent clients from database
+        await this.loadRecentClients();
         
         // Reload cached bets to update chart
         const bets = await this.http.get<any[]>(`${this.apiUrl}/bets?meetingName=${encodeURIComponent(this.meetingName)}`).toPromise();

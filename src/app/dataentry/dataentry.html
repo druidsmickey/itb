@@ -72,6 +72,18 @@
         </mat-form-field>
       </div>
 
+      <!-- Recent Clients -->
+      <div class="full-width" *ngIf="recentClients.length > 0" style="display: flex; gap: 4px; flex-wrap: wrap; margin-bottom: 8px;">
+        <button 
+          *ngFor="let client of recentClients" 
+          mat-stroked-button
+          (click)="selectClient(client)"
+          class="client-btn"
+          style="font-size: 11px; padding: 0 8px; min-width: 0; height: 28px;">
+          {{ client }}
+        </button>
+      </div>
+
       <!-- Bet Option Selection -->
       <div class="full-width radio-group" style="display: flex; gap: 8px; flex-wrap: nowrap; align-items: center;">
         <!-- <label>Bet Type:</label> -->

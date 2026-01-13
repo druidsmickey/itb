@@ -200,6 +200,22 @@ app.post('/api/params', async (req, res) => {
 
 // Bets API endpoints
 
+// Get recent client names (last 6 unique)
+app.get('/api/bets/recent-clients', async (req, res) => {
+  try {
+    const recentClients = await Bets.aggregate([
+      { $match: { clientName: { $exists: true, $ne: '' } } },
+      { $sort: { betTime: -1 } },
+      { $group: { _id: '$clientName' } },
+      { $limit: 6 },
+      { $project: { _id: 0, clientName: '$_id' } }
+    ]);
+    res.json(recentClients.map(item => item.clientName));
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
 // Get all bets
 app.get('/api/bets', async (req, res) => {
   try {
