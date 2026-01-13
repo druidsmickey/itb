@@ -85,17 +85,16 @@
       </div>
 
       <!-- Bet Option Selection -->
-      <div class="full-width radio-group" style="display: flex; gap: 8px; flex-wrap: nowrap; align-items: center;">
+      <div class="full-width" style="display: flex; gap: 8px; flex-wrap: nowrap; align-items: center; flex-direction: row !important;">
         <!-- <label>Bet Type:</label> -->
-        <mat-radio-group [(ngModel)]="betType" class="radio-buttons">
+        <mat-radio-group [(ngModel)]="betType" class="radio-buttons" style="flex-shrink: 0;">
           <mat-radio-button value="sales">Sales</mat-radio-button>
           <mat-radio-button value="purchase">Pur</mat-radio-button>
         </mat-radio-group>
-        <mat-radio-group [(ngModel)]="oddsType" class="radio-buttons">
+        <mat-radio-group [(ngModel)]="oddsType" class="radio-buttons" style="flex-shrink: 0;">
           <mat-radio-button value="f500">F500</mat-radio-button>
           <mat-radio-button value="odds">Odds</mat-radio-button>
         </mat-radio-group>
-
       </div>
 
       <!-- Dynamic Input Fields 
