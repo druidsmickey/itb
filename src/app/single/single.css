@@ -27,7 +27,7 @@
   flex-wrap: nowrap;
   gap: 3px;
   margin-bottom: 8px;
-  justify-content: center;
+  justify-content: flex-start;
 }
 
 .race-btn {
@@ -223,6 +223,8 @@
   gap: 3px;
   margin-bottom: 8px;
   overflow: visible;
+  justify-content: flex-start;
+  width: 100%;
 }
 
 .horse-btn {

@@ -45,6 +45,9 @@ h2 {
 .radio-group {
   padding: 4px 0;
   overflow: visible;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
 }
 
 .radio-group label {
@@ -60,6 +63,8 @@ h2 {
   gap: 3px;
   margin-bottom: 8px;
   overflow: visible;
+  justify-content: flex-start;
+  width: 100%;
 }
 
 .horse-btn {
@@ -135,7 +140,7 @@ h2 {
   flex-wrap: wrap;
   gap: 3px;
   margin-bottom: 8px;
-  justify-content: center;
+  justify-content: flex-start;
 }
 
 .race-btn {
