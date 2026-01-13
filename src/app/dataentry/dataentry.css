@@ -44,6 +44,7 @@ h2 {
 
 .radio-group {
   padding: 4px 0;
+  overflow: visible;
 }
 
 .radio-group label {
@@ -55,11 +56,10 @@ h2 {
 
 .horse-buttons {
   display: flex;
-  flex-wrap: nowrap;
+  flex-wrap: wrap;
   gap: 3px;
   margin-bottom: 8px;
-  overflow-x: auto;
-  -webkit-overflow-scrolling: touch;
+  overflow: visible;
 }
 
 .horse-btn {
@@ -132,11 +132,10 @@ h2 {
 
 .race-buttons {
   display: flex;
-  flex-wrap: nowrap;
+  flex-wrap: wrap;
   gap: 3px;
   margin-bottom: 8px;
-  overflow-x: auto;
-  -webkit-overflow-scrolling: touch;
+  justify-content: center;
 }
 
 .race-btn {
@@ -252,6 +251,32 @@ h2 {
   min-width: 120px;
   height: 40px;
   font-size: 15px;
+}
+
+::ng-deep .mat-mdc-form-field {
+  font-size: 0.9rem;
+}
+
+::ng-deep .mat-mdc-text-field-wrapper {
+  height: 45px !important;
+}
+
+::ng-deep .mat-mdc-form-field-infix {
+  padding-top: 9px !important;
+  padding-bottom: 9px !important;
+}
+
+::ng-deep .mat-mdc-form-field {
+  font-size: 0.9rem;
+}
+
+::ng-deep .mat-mdc-text-field-wrapper {
+  height: 45px !important;
+}
+
+::ng-deep .mat-mdc-form-field-infix {
+  padding-top: 9px !important;
+  padding-bottom: 9px !important;
 }
 
 @media (max-width: 768px) {

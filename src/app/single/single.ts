@@ -98,7 +98,11 @@ export class Single implements OnInit {
   }
   
   loadSelectedRaces() {
-    this.loading = true;
+    setTimeout(() => {
+      this.loading = true;
+      this.cdr.detectChanges();
+    }, 0);
+    
     this.http.get<any[]>(`${this.apiUrl}/params/selected-races`).subscribe({
       next: async (races) => {
         if (races.length === 0) {

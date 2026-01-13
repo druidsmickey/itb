@@ -24,23 +24,23 @@
 
 .race-buttons {
   display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem;
-  justify-content: flex-start;
+  flex-wrap: nowrap;
+  gap: 3px;
+  margin-bottom: 8px;
+  justify-content: center;
 }
 
 .race-btn {
-  min-width: 34px;
-  width: 34px;
-  height: 34px;
-  padding: 0;
-  font-size: 0.9rem;
-  border: 1px solid #d1d5db;
+  min-width: 32px !important;
+  max-width: 36px !important;
+  height: 32px !important;
+  padding: 0 4px !important;
+  font-size: 0.875rem !important;
+  line-height: 32px !important;
+  flex-shrink: 0;
+  border: 1px solid #ccc;
   background: white;
-  color: #374151;
-  border-radius: 6px;
   cursor: pointer;
-  transition: all 0.2s;
 }
 
 .race-btn:hover {
@@ -49,10 +49,9 @@
 }
 
 .race-btn.selected {
-  background: #3b82f6;
-  color: white;
-  border-color: #3b82f6;
-  font-weight: 600;
+  background: #1976d2 !important;
+  color: white !important;
+  border-color: #1976d2;
 }
 
 .chart-display {
@@ -223,8 +222,7 @@
   flex-wrap: wrap;
   gap: 3px;
   margin-bottom: 8px;
-  overflow-x: auto;
-  -webkit-overflow-scrolling: touch;
+  overflow: visible;
 }
 
 .horse-btn {
@@ -267,4 +265,17 @@
 
 .button-container button {
   flex: 1;
+}
+
+::ng-deep .mat-mdc-form-field {
+  font-size: 0.9rem;
+}
+
+::ng-deep .mat-mdc-text-field-wrapper {
+  height: 45px !important;
+}
+
+::ng-deep .mat-mdc-form-field-infix {
+  padding-top: 9px !important;
+  padding-bottom: 9px !important;
 }
