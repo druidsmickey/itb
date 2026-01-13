@@ -262,10 +262,10 @@ export class Single implements OnInit {
       
       // Convert map to sorted array
       this.horses = Array.from(horsesMap.values()).sort((a, b) => a.horseNum - b.horseNum);
-      this.hasWinner = this.horses.some(h => h.isWinner);
       
       // Defer change detection to next cycle to avoid ExpressionChangedAfterItHasBeenCheckedError
       setTimeout(() => {
+        this.hasWinner = this.horses.some(h => h.isWinner);
         this.cdr.detectChanges();
       }, 0);
   }
