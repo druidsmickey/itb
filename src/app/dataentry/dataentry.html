@@ -15,7 +15,7 @@
         <div class="race-buttons">
           <button 
             *ngFor="let race of races" 
-            mat-button
+            mat-mini-fab
             (click)="selectRace(race.raceNum)"
             class="race-btn"
             [class.selected]="selectedRaceNum === race.raceNum">
@@ -31,7 +31,7 @@
           H
           <button 
             *ngFor="let horse of horses" 
-            mat-button
+            mat-mini-fab
             [disabled]="!selectedRaceNum || horse.hasSpecial || horse.hasRule4 || selectedRaceHasWinner"
             (click)="selectHorse(horse.horseNum)"
             class="horse-btn"

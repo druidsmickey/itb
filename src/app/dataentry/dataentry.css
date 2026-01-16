@@ -72,12 +72,11 @@ h2 {
 }
 
 .horse-btn {
-  min-width: 32px !important;
-  max-width: 36px !important;
-  height: 32px !important;
-  padding: 0 4px !important;
+  width: 36px !important;
+  height: 36px !important;
+  padding: 0 !important;
   font-size: 0.875rem !important;
-  line-height: 32px !important;
+  line-height: 36px !important;
   flex-shrink: 0;
   border: 1px solid #ccc;
   background: white;
@@ -148,12 +147,11 @@ h2 {
 }
 
 .race-btn {
-  min-width: 32px !important;
-  max-width: 36px !important;
-  height: 32px !important;
-  padding: 0 4px !important;
+  width: 36px !important;
+  height: 36px !important;
+  padding: 0 !important;
   font-size: 0.875rem !important;
-  line-height: 32px !important;
+  line-height: 36px !important;
   flex-shrink: 0;
   border: 1px solid #ccc;
   background: white;
