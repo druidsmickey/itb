@@ -54,12 +54,14 @@ export class Dataentry implements OnInit {
   
   // Track if selected race has a winner
   selectedRaceHasWinner: boolean = false;
-  
   stakeBooksError: string = '';
   oddsError: string = '';
   
   // Recent clients
   recentClients: string[] = [];
+  
+  // Last saved bet
+  lastBet: any = null;
   
   // Betslip form
   selectedRaceNum: number | null = null;
@@ -89,11 +91,26 @@ export class Dataentry implements OnInit {
   ngOnInit() {
     this.loadSelectedRaces();
     this.loadRecentClients();
+    this.loadLastBet();
   }
   
   async loadRecentClients() {
     this.recentClients = await this.recentClientsService.loadRecentClients();
     this.cdr.detectChanges();
+  }
+  
+  loadLastBet() {
+    this.http.get<any>(`${this.apiUrl}/bets/last`).subscribe({
+      next: (bet) => {
+        if (bet) {
+          this.lastBet = bet;
+          this.cdr.detectChanges();
+        }
+      },
+      error: (error) => {
+        console.error('Error loading last bet:', error);
+      }
+    });
   }
   
   selectClient(clientName: string) {
@@ -109,11 +126,13 @@ export class Dataentry implements OnInit {
           return;
         }
         
-        this.races = races;
-        this.meetingName = races[0].meetingName;
-        this.cdr.detectChanges();
-        // Load all params once upfront
-        this.loadAllParams();
+        setTimeout(() => {
+          this.races = races;
+          this.meetingName = races[0].meetingName;
+          this.cdr.detectChanges();
+          // Load all params once upfront
+          this.loadAllParams();
+        }, 0);
       },
       error: (error) => {
         console.error('Error loading races:', error);
@@ -232,6 +251,8 @@ export class Dataentry implements OnInit {
         alert('Bet saved successfully!');
         // Reload recent clients from database
         await this.loadRecentClients();
+        // Reload last bet from database
+        this.loadLastBet();
         setTimeout(() => this.resetForm(), 0);
        },
       error: (error) => {

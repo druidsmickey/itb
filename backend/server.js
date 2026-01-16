@@ -216,6 +216,16 @@ app.get('/api/bets/recent-clients', async (req, res) => {
   }
 });
 
+// Get last bet
+app.get('/api/bets/last', async (req, res) => {
+  try {
+    const lastBet = await Bets.findOne().sort({ betTime: -1 });
+    res.json(lastBet || null);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
 // Get all bets
 app.get('/api/bets', async (req, res) => {
   try {

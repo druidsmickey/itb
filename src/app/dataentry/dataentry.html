@@ -28,6 +28,7 @@
       <div class="full-width radio-group">
         <!-- <label>Horse:</label> -->
         <div class="horse-buttons">
+          H
           <button 
             *ngFor="let horse of horses" 
             mat-button
@@ -39,7 +40,7 @@
             {{ horse.horseNum }}
           </button>
         </div>
-        <div class="horse-name-display">{{ selectedHorseName }}</div>
+        <div class="horse-name-display"># {{ selectedHorseName }}</div>
       </div>
 
 
@@ -72,14 +73,21 @@
         </mat-form-field>
       </div>
 
+      <!-- Action Buttons -->
+      <div class="button-container">
+        <button mat-raised-button color="primary" (click)="saveBet()" style="height: 64px; font-size: 1.5rem; min-width: 200px; background-color: #1976d2; color: white;">
+          Save Bet
+        </button>
+      </div>
+
       <!-- Recent Clients -->
-      <div class="full-width" *ngIf="recentClients.length > 0" style="display: flex; gap: 4px; flex-wrap: wrap; margin-bottom: 8px;">
+      <div class="full-width" *ngIf="recentClients.length > 0" style="display: flex; gap: 5px; flex-wrap: wrap; margin-bottom: 8px;">
         <button 
           *ngFor="let client of recentClients" 
           mat-stroked-button
           (click)="selectClient(client)"
           class="client-btn"
-          style="font-size: 11px; padding: 0 8px; min-width: 0; height: 28px;">
+          style="font-size: 14px; padding: 0 12px; min-width: 0; height: 36px;">
           {{ client }}
         </button>
       </div>
@@ -117,11 +125,17 @@
       </div>-->
     </div>
 
-    <!-- Action Buttons -->
-    <div class="button-container">
-      <button mat-raised-button color="primary" (click)="saveBet()" style="height: 64px; font-size: 1.5rem; min-width: 200px;">
-        Save Bet
-      </button>
+  </mat-card>
+
+  <!-- Last Bet Display -->
+  <mat-card *ngIf="lastBet" [style.background-color]="lastBet.stake < 0 || lastBet.books < 0 ? '#fee2e2' : '#f0f9ff'" style="margin-top: 12px; padding: 8px;">
+    <div style="font-size: 0.9rem;">
+      <strong style="color: #1976d2;">Last Bet:</strong>
+      R{{ lastBet.raceNum }} - H{{ lastBet.horseNum }} ({{ lastBet.horseName }}) - 
+      {{ lastBet.clientName }} - 
+      {{ lastBet.f500 ? 'Books' : 'Stakes' }}: {{ lastBet.f500 ? (lastBet.books < 0 ? -lastBet.books : lastBet.books) : (lastBet.stake < 0 ? -lastBet.stake : lastBet.stake) }} - 
+      {{ lastBet.f500 ? 'F500' : 'Odds' }}: {{ lastBet.f500 || lastBet.odds100 }} - 
+      Payout: {{ lastBet.payout < 0 ? -lastBet.payout : lastBet.payout }}
     </div>
   </mat-card>
 </div>
