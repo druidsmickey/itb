@@ -113,8 +113,11 @@ export class Single implements OnInit {
           return;
         }
         
-        this.races = races;
-        this.meetingName = races[0].meetingName;
+        setTimeout(() => {
+          this.races = races;
+          this.meetingName = races[0].meetingName;
+          this.cdr.detectChanges();
+        }, 0);
         
         // Preload and cache params and bets
         await this.loadAndCacheData();
