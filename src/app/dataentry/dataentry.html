@@ -28,7 +28,6 @@
       <div class="full-width radio-group">
         <!-- <label>Horse:</label> -->
         <div class="horse-buttons">
-          H
           <button 
             *ngFor="let horse of horses" 
             mat-mini-fab
@@ -92,7 +91,7 @@
       <div class="full-width" *ngIf="recentClients.length > 0" style="display: flex; gap: 5px; flex-wrap: wrap; margin-bottom: 2px;">
         <button 
           *ngFor="let client of recentClients" 
-          mat-stroked-button
+          mat-mini-fab
           (click)="selectClient(client)"
           class="client-btn"
           style="font-size: 14px; padding: 0 12px; min-width: 0; height: 36px;">
