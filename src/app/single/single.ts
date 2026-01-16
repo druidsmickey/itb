@@ -65,6 +65,9 @@ export class Single implements OnInit {
   // Recent clients
   recentClients: string[] = [];
   
+  // Last saved bet
+  lastBet: any = null;
+  
   // Betslip form fields
   betslipHorses: any[] = [];
   betslipSelectedHorseNum: number | null = null;
@@ -85,11 +88,26 @@ export class Single implements OnInit {
   ngOnInit() {
     this.loadSelectedRaces();
     this.loadRecentClients();
+    this.loadLastBet();
   }
   
   async loadRecentClients() {
     this.recentClients = await this.recentClientsService.loadRecentClients();
     this.cdr.detectChanges();
+  }
+  
+  loadLastBet() {
+    this.http.get<any>(`${this.apiUrl}/bets/last`).subscribe({
+      next: (bet) => {
+        if (bet) {
+          this.lastBet = bet;
+          this.cdr.detectChanges();
+        }
+      },
+      error: (error) => {
+        console.error('Error loading last bet:', error);
+      }
+    });
   }
   
   selectClient(clientName: string) {
@@ -366,6 +384,8 @@ export class Single implements OnInit {
         alert('Bet saved successfully!');
         // Reload recent clients from database
         await this.loadRecentClients();
+        // Reload last bet from database
+        this.loadLastBet();
         
         // Reload cached bets to update chart
         const bets = await this.http.get<any[]>(`${this.apiUrl}/bets?meetingName=${encodeURIComponent(this.meetingName)}`).toPromise();

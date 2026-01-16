@@ -9,15 +9,16 @@
           <div class="horse-buttons">
             <button 
               *ngFor="let horse of betslipHorses" 
-              mat-button
+              mat-mini-fab
               [disabled]="horse.hasSpecial || horse.hasRule4"
               (click)="selectBetslipHorse(horse.horseNum)"
               class="horse-btn"
-              [class.selected]="betslipSelectedHorseNum === horse.horseNum">
+              [class.selected]="betslipSelectedHorseNum === horse.horseNum"
+              [class.winner-horse]="horse.isWinner">
               {{ horse.horseNum }}
             </button>
           </div>
-          <div class="horse-name-display">{{ betslipSelectedHorseName }}</div>
+          <div class="horse-name-display"># {{ betslipSelectedHorseName }}</div>
         </div>
 
         <!-- All Inputs in One Row -->
@@ -49,39 +50,51 @@
           </mat-form-field>
         </div>
 
-        <!-- Recent Clients -->
-        <div class="full-width" *ngIf="recentClients.length > 0" style="display: flex; gap: 4px; flex-wrap: wrap; margin-bottom: 8px;">
-          <button 
-            *ngFor="let client of recentClients" 
-            mat-stroked-button
-            (click)="selectClient(client)"
-            class="client-btn"
-            style="font-size: 11px; padding: 0 8px; min-width: 0; height: 28px;">
-            {{ client }}
-          </button>
-        </div>
-
         <!-- Bet Option Selection -->
-        <div class="full-width radio-group" style="display: flex; gap: 8px; flex-wrap: nowrap; align-items: center;">
-          <mat-radio-group [(ngModel)]="betType" class="radio-buttons">
+        <div class="full-width" style="display: flex; gap: 8px; flex-wrap: nowrap; align-items: center; flex-direction: row !important;">
+          <mat-radio-group [(ngModel)]="betType" class="radio-buttons" style="flex-shrink: 0;">
             <mat-radio-button value="sales">Sales</mat-radio-button>
             <mat-radio-button value="purchase">Pur</mat-radio-button>
           </mat-radio-group>
-          <mat-radio-group [(ngModel)]="oddsType" class="radio-buttons">
+          <mat-radio-group [(ngModel)]="oddsType" class="radio-buttons" style="flex-shrink: 0;">
             <mat-radio-button value="f500">F500</mat-radio-button>
             <mat-radio-button value="odds">Odds</mat-radio-button>
           </mat-radio-group>
         </div>
-      </div>
+        
+        <!-- Recent Clients -->
+        <div class="full-width" *ngIf="recentClients.length > 0" style="display: flex; gap: 5px; flex-wrap: wrap; margin-bottom: 2px;">
+          <button 
+            *ngFor="let client of recentClients" 
+            mat-mini-fab
+            (click)="selectClient(client)"
+            class="client-btn"
+            style="font-size: 14px; padding: 0 12px; min-width: 0; height: 36px;">
+            {{ client }}
+          </button>
+        </div>
 
-      <!-- Action Buttons -->
-      <div class="button-container">
-        <button mat-raised-button color="primary" (click)="saveBet()" style="height: 64px; font-size: 1.5rem; min-width: 200px; background-color: #1976d2; color: white;">
-          Save Bet
-        </button>
-        <button mat-raised-button (click)="sidenav.close()">
-          Close
-        </button>
+        <!-- Action Buttons and Last Bet -->
+        <div class="full-width" style="display: flex; gap: 8px; align-items: stretch; flex-direction: column;">
+          <div style="display: flex; gap: 8px;">
+            <button mat-raised-button color="primary" (click)="saveBet()" style="flex: 1; height: 80px; font-size: 1.5rem; background-color: #1976d2; color: white;">
+              Save Bet
+            </button>
+            <div *ngIf="lastBet" [style.background-color]="lastBet.stake < 0 || lastBet.books < 0 ? '#fee2e2' : '#f0f9ff'" style="flex: 1; padding: 8px; border: 1px solid #ddd; border-radius: 4px; display: flex; flex-direction: column; justify-content: center;">
+              <div style="font-size: 0.85rem; line-height: 1.4;">
+                <div><strong style="color: #1976d2;">{{ lastBet.clientName }}</strong></div>
+                <div><strong style="color: rgb(34, 110, 35)">R{{ lastBet.raceNum }} H{{ lastBet.horseNum }} {{ lastBet.horseName }}</strong></div>
+                <div>
+                  <strong *ngIf="lastBet.f500">{{ lastBet.books < 0 ? -lastBet.books : lastBet.books }} x {{ lastBet.f500 }}</strong>
+                  <strong *ngIf="!lastBet.f500">{{ lastBet.stake < 0 ? -lastBet.stake : lastBet.stake }} @ {{ lastBet.odds100 }}</strong>
+                </div>
+              </div>
+            </div>
+          </div>
+          <button mat-raised-button (click)="sidenav.close()">
+            Close
+          </button>
+        </div>
       </div>
     </div>
   </mat-sidenav>
