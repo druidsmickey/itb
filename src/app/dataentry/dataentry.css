@@ -72,15 +72,38 @@ h2 {
 }
 
 .horse-btn {
-  width: 36px !important;
-  height: 36px !important;
+  width: 28px !important;
+  height: 28px !important;
   padding: 0 !important;
-  font-size: 0.875rem !important;
-  line-height: 36px !important;
+  font-size: 0.75rem !important;
+  line-height: 28px !important;
   flex-shrink: 0;
   border: 1px solid #ccc;
   background: white;
   cursor: pointer;
+  min-width: 28px !important;
+  min-height: 28px !important;
+}
+
+::ng-deep .horse-btn {
+  width: 28px !important;
+  height: 28px !important;
+}
+
+::ng-deep .horse-btn .mat-mdc-button-touch-target {
+  width: 28px !important;
+  height: 28px !important;
+}
+
+::ng-deep .horse-btn .mdc-fab__ripple,
+::ng-deep .horse-btn .mat-mdc-fab-base {
+  padding: 0 !important;
+  width: 28px !important;
+  height: 28px !important;
+}
+
+::ng-deep .horse-btn .mat-icon {
+  font-size: 16px !important;
 }
 
 .horse-btn.selected {
@@ -147,15 +170,38 @@ h2 {
 }
 
 .race-btn {
-  width: 36px !important;
-  height: 36px !important;
+  width: 28px !important;
+  height: 28px !important;
   padding: 0 !important;
-  font-size: 0.875rem !important;
-  line-height: 36px !important;
+  font-size: 0.75rem !important;
+  line-height: 28px !important;
   flex-shrink: 0;
   border: 1px solid #ccc;
   background: white;
   cursor: pointer;
+  min-width: 28px !important;
+  min-height: 28px !important;
+}
+
+::ng-deep .race-btn {
+  width: 28px !important;
+  height: 28px !important;
+}
+
+::ng-deep .race-btn .mat-mdc-button-touch-target {
+  width: 28px !important;
+  height: 28px !important;
+}
+
+::ng-deep .race-btn .mdc-fab__ripple,
+::ng-deep .race-btn .mat-mdc-fab-base {
+  padding: 0 !important;
+  width: 28px !important;
+  height: 28px !important;
+}
+
+::ng-deep .race-btn .mat-icon {
+  font-size: 16px !important;
 }
 
 .race-btn.selected {
