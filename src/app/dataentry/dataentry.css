@@ -126,8 +126,8 @@ h2 {
 }
 
 .horse-name-display {
-  font-size: 0.9rem;
-  color: #1976d2;
+  font-size: 1.35rem;
+  color: red;
   font-weight: 500;
   min-height: 20px;
 }
@@ -151,7 +151,7 @@ h2 {
   }
   
   .horse-name-display {
-    font-size: 0.85rem;
+    font-size: 1.28rem;
   }
 }
 
@@ -270,6 +270,15 @@ h2 {
   display: inline-flex;
 }
 
+::ng-deep .radio-buttons mat-radio-button .mdc-form-field {
+  padding-top: 0 !important;
+  padding-bottom: 0 !important;
+}
+
+::ng-deep .radio-buttons mat-radio-button .mdc-radio {
+  padding: 0 !important;
+}
+
 .radio-buttons.vertical {
   flex-direction: column;
   gap: 10px;
@@ -315,6 +324,7 @@ h2 {
 ::ng-deep .mat-mdc-form-field {
   font-size: 0.9rem;
   margin-bottom: 0 !important;
+  line-height: 1 !important;
 }
 
 ::ng-deep .mat-mdc-text-field-wrapper {
@@ -324,6 +334,11 @@ h2 {
 ::ng-deep .mat-mdc-form-field-infix {
   padding-top: 4px !important;
   padding-bottom: 4px !important;
+  min-height: 38px !important;
+}
+
+::ng-deep .mat-mdc-form-field-subscript-wrapper {
+  display: none !important;
 }
 
 ::ng-deep .mat-mdc-form-field {
