@@ -80,8 +80,8 @@ h2 {
   line-height: 28px !important;
   flex-shrink: 0;
   border: 1px solid #ccc;
-  background: #90ee90;
-  color: black;
+  background: white;
+  color: rgb(34, 110, 35);
   cursor: pointer;
   min-width: 28px !important;
   min-height: 28px !important;
@@ -109,9 +109,9 @@ h2 {
 }
 
 .horse-btn.selected {
-  background: #1976d2 !important;
+  background: rgb(34, 110, 35) !important;
   color: white !important;
-  border-color: #1976d2;
+  border-color: rgb(34, 110, 35);
 }
 
 .horse-btn:disabled {

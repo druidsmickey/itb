@@ -98,11 +98,21 @@
           {{ client }}
         </button>
       </div>
-      <!-- Action Buttons -->
-      <div class="button-container">
-        <button mat-raised-button color="primary" (click)="saveBet()" style="height: 64px; font-size: 1.5rem; min-width: 200px; background-color: #1976d2; color: white;">
+      <!-- Action Buttons and Last Bet -->
+      <div class="full-width" style="display: flex; gap: 8px; align-items: stretch;">
+        <button mat-raised-button color="primary" (click)="saveBet()" style="flex: 1; height: 80px; font-size: 1.5rem; background-color: #1976d2; color: white;">
           Save Bet
         </button>
+        <div *ngIf="lastBet" [style.background-color]="lastBet.stake < 0 || lastBet.books < 0 ? '#fee2e2' : '#f0f9ff'" style="flex: 1; padding: 8px; border: 1px solid #ddd; border-radius: 4px; display: flex; flex-direction: column; justify-content: center;">
+          <div style="font-size: 0.85rem; line-height: 1.4;">
+            <div><strong style="color: #1976d2;">{{ lastBet.clientName }}</strong></div>
+            <div><strong style="color: rgb(34, 110, 35)">R{{ lastBet.raceNum }} H{{ lastBet.horseNum }} {{ lastBet.horseName }}</strong></div>
+            <div>
+              <strong *ngIf="lastBet.f500">{{ lastBet.books < 0 ? -lastBet.books : lastBet.books }} x {{ lastBet.f500 }}</strong>
+              <strong *ngIf="!lastBet.f500">{{ lastBet.stake < 0 ? -lastBet.stake : lastBet.stake }} @ {{ lastBet.odds100 }}</strong>
+            </div>
+          </div>
+        </div>
       </div>
       <!-- Dynamic Input Fields 
       <div class="option-group full-width">
@@ -122,17 +132,6 @@
           </mat-form-field>
         </div>
       </div>-->
-    </div>
-  </mat-card>
-
-  <!-- Last Bet Display -->
-  <mat-card *ngIf="lastBet" [style.background-color]="lastBet.stake < 0 || lastBet.books < 0 ? '#fee2e2' : '#f0f9ff'" style="margin-top: 12px; padding: 8px;">
-    <div style="font-size: 0.9rem;">
-      <strong style="color: #1976d2;">Last Bet:</strong>
-      {{ lastBet.clientName }} 
-      R{{ lastBet.raceNum }} H{{ lastBet.horseNum }} {{ lastBet.horseName }} 
-      <span *ngIf="lastBet.f500">{{ lastBet.books < 0 ? -lastBet.books : lastBet.books }} x {{ lastBet.f500 }}</span>
-      <span *ngIf="!lastBet.f500">{{ lastBet.stake < 0 ? -lastBet.stake : lastBet.stake }} @ {{ lastBet.odds100 }}</span>
     </div>
   </mat-card>
 </div>
