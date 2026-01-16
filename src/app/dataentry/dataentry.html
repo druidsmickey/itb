@@ -53,7 +53,7 @@
           <mat-error *ngIf="stakeBooksError">{{ stakeBooksError }}</mat-error>
         </mat-form-field>
 
-        <mat-form-field appearance="outline" style="flex: 1; min-width: 80px;" [style.background-color]="oddsType === 'odds' ? 'yellow' : 'transparent'">
+        <mat-form-field appearance="outline" style="flex: 1; min-width: 80px;" [style.background-color]="oddsType === 'odds' ? '#1976d2' : 'transparent'">
           <mat-label>{{ oddsType === 'odds' ? 'Odds' : 'F500' }}</mat-label>
           <input matInput type="number" [(ngModel)]="odds" 
                  (input)="validateOdds()" 
@@ -104,12 +104,12 @@
           Save Bet
         </button>
         <div *ngIf="lastBet" [style.background-color]="lastBet.stake < 0 || lastBet.books < 0 ? '#fee2e2' : '#f0f9ff'" style="flex: 1; padding: 8px; border: 1px solid #ddd; border-radius: 4px; display: flex; flex-direction: column; justify-content: center;">
-          <div style="font-size: 0.85rem; line-height: 1.4;" [style.text-decoration]="lastBet.cancelled ? 'line-through' : 'none'">
-            <div><strong style="color: #1976d2;">{{ lastBet.clientName }}</strong></div>
+          <div style="font-size: 0.975rem; line-height: 1.4;" [style.text-decoration]="lastBet.cancelled ? 'line-through' : 'none'">
+            <div><strong style="color: black;">{{ lastBet.clientName }}</strong></div>
             <div><strong style="color: rgb(34, 110, 35)">R{{ lastBet.raceNum }} H{{ lastBet.horseNum }} {{ lastBet.horseName }}</strong></div>
             <div>
               <strong *ngIf="lastBet.f500">{{ lastBet.books < 0 ? -lastBet.books : lastBet.books }} x {{ lastBet.f500 }}</strong>
-              <strong *ngIf="!lastBet.f500">{{ lastBet.stake < 0 ? -lastBet.stake : lastBet.stake }} @ {{ lastBet.odds100 }}</strong>
+              <strong *ngIf="!lastBet.f500">{{ lastBet.stake < 0 ? -lastBet.stake : lastBet.stake }} @ <span style="color: #1976d2;">{{ lastBet.odds100 }}</span></strong>
             </div>
           </div>
         </div>

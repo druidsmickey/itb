@@ -10,7 +10,7 @@
 
 h2 {
   text-align: center;
-  margin-bottom: 0;
+  margin-bottom: 2px;
   color: #333;
   font-size: 1.25rem;
 }
@@ -31,8 +31,8 @@ h2 {
 }
 
 .betslip-card h3 {
-  margin-top: 0;
-  margin-bottom: 0;
+  margin-top: 2px;
+  margin-bottom: 2px;
   color: #1976d2;
 }
 
@@ -56,7 +56,7 @@ h2 {
 
 .radio-group label {
   display: block;
-  margin-bottom: 0;
+  margin-bottom: 2px;
   font-weight: 500;
   color: #666;
 }
@@ -65,7 +65,7 @@ h2 {
   display: flex;
   flex-wrap: nowrap;
   gap: 2px;
-  margin-bottom: 0;
+  margin-bottom: 2px;
   overflow-x: auto;
   overflow-y: hidden;
   justify-content: flex-start;
@@ -161,7 +161,7 @@ h2 {
 
 .chip-label {
   display: block;
-  margin-bottom: 0;
+  margin-bottom: 2px;
   font-weight: 500;
   color: #666;
   font-size: 14px;
@@ -171,7 +171,7 @@ h2 {
   display: flex;
   flex-wrap: wrap;
   gap: 3px;
-  margin-bottom: 0;
+  margin-bottom: 2px;
   justify-content: flex-start;
 }
 
@@ -224,7 +224,7 @@ h2 {
   
   h2 {
     font-size: 1.1rem;
-    margin-bottom: 0;
+    margin-bottom: 2px;
   }
   
   .betslip-card {
@@ -299,7 +299,7 @@ h2 {
 }
 
 .option-group {
-  margin-top: 0;
+  margin-top: 2px;
 }
 
 .option-fields {
@@ -312,7 +312,7 @@ h2 {
   display: flex;
   justify-content: center;
   gap: 15px;
-  margin-top: 0;
+  margin-top: 2px;
 }
 
 .button-container button {
@@ -368,7 +368,7 @@ h2 {
 
 @media (max-width: 450px) {
   .button-container {
-    margin-top: 0;
+    margin-top: 2px;
   }
   
   .button-container button {

@@ -22,8 +22,8 @@
         </div>
 
         <!-- All Inputs in One Row -->
-        <div class="full-width" style="display: flex; gap: 4px; flex-wrap: wrap;">
-          <mat-form-field appearance="outline" style="flex: 1; min-width: 100px;">
+        <div class="full-width" style="display: flex; gap: 4px; flex-wrap: nowrap;">
+          <mat-form-field appearance="outline" style="flex: 1; min-width: 80px;">
             <mat-label>{{ oddsType === 'odds' ? 'Stakes' : 'Books' }}</mat-label>
             <input matInput type="number" [(ngModel)]="stakeBooks" 
                    (input)="validateStakeBooks()" 
@@ -31,7 +31,7 @@
             <mat-error *ngIf="stakeBooksError">{{ stakeBooksError }}</mat-error>
           </mat-form-field>
 
-          <mat-form-field appearance="outline" style="flex: 1; min-width: 80px;">
+          <mat-form-field appearance="outline" style="flex: 1; min-width: 60px;" [style.background-color]="oddsType === 'odds' ? '#1976d2' : 'transparent'">
             <mat-label>{{ oddsType === 'odds' ? 'Odds' : 'F500' }}</mat-label>
             <input matInput type="number" [(ngModel)]="odds" 
                    (input)="validateOdds()" 
@@ -39,12 +39,12 @@
             <mat-error *ngIf="oddsError">{{ oddsError }}</mat-error>
           </mat-form-field>
 
-          <mat-form-field appearance="outline" style="flex: 1.5; min-width: 80px;">
+          <mat-form-field appearance="outline" style="flex: 1.5; min-width: 60px;">
             <mat-label>Name</mat-label>
             <input matInput [(ngModel)]="clientName" (input)="onClientNameInput()">
           </mat-form-field>
 
-          <mat-form-field appearance="outline" style="flex: 0.8; min-width: 60px;">
+          <mat-form-field appearance="outline" style="flex: 0.8; min-width: 50px;">
             <mat-label>Tax</mat-label>
             <input matInput type="number" [(ngModel)]="tax">
           </mat-form-field>
@@ -53,8 +53,8 @@
         <!-- Bet Option Selection -->
         <div class="full-width" style="display: flex; gap: 8px; flex-wrap: nowrap; align-items: center; flex-direction: row !important;">
           <mat-radio-group [(ngModel)]="betType" class="radio-buttons" style="flex-shrink: 0;">
-            <mat-radio-button value="sales">Sales</mat-radio-button>
-            <mat-radio-button value="purchase">Pur</mat-radio-button>
+            <mat-radio-button value="sales">S</mat-radio-button>
+            <mat-radio-button value="purchase">P</mat-radio-button>
           </mat-radio-group>
           <mat-radio-group [(ngModel)]="oddsType" class="radio-buttons" style="flex-shrink: 0;">
             <mat-radio-button value="f500">F500</mat-radio-button>
@@ -81,12 +81,12 @@
               Save Bet
             </button>
             <div *ngIf="lastBet" [style.background-color]="lastBet.stake < 0 || lastBet.books < 0 ? '#fee2e2' : '#f0f9ff'" style="flex: 1; padding: 8px; border: 1px solid #ddd; border-radius: 4px; display: flex; flex-direction: column; justify-content: center;">
-              <div style="font-size: 0.85rem; line-height: 1.4;" [style.text-decoration]="lastBet.cancelled ? 'line-through' : 'none'">
-                <div><strong style="color: #1976d2;">{{ lastBet.clientName }}</strong></div>
+              <div style="font-size: 0.975rem; line-height: 1.4;" [style.text-decoration]="lastBet.cancelled ? 'line-through' : 'none'">
+                <div><strong style="color: black;">{{ lastBet.clientName }}</strong></div>
                 <div><strong style="color: rgb(34, 110, 35)">R{{ lastBet.raceNum }} H{{ lastBet.horseNum }} {{ lastBet.horseName }}</strong></div>
                 <div>
                   <strong *ngIf="lastBet.f500">{{ lastBet.books < 0 ? -lastBet.books : lastBet.books }} x {{ lastBet.f500 }}</strong>
-                  <strong *ngIf="!lastBet.f500">{{ lastBet.stake < 0 ? -lastBet.stake : lastBet.stake }} @ {{ lastBet.odds100 }}</strong>
+                  <strong *ngIf="!lastBet.f500">{{ lastBet.stake < 0 ? -lastBet.stake : lastBet.stake }} @ <span style="color: #1976d2;">{{ lastBet.odds100 }}</span></strong>
                 </div>
               </div>
             </div>
