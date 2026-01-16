@@ -63,10 +63,11 @@ h2 {
 
 .horse-buttons {
   display: flex;
-  flex-wrap: wrap;
-  gap: 3px;
+  flex-wrap: nowrap;
+  gap: 2px;
   margin-bottom: 8px;
-  overflow: visible;
+  overflow-x: auto;
+  overflow-y: hidden;
   justify-content: flex-start;
   width: 100%;
 }
