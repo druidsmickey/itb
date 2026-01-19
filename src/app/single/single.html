@@ -129,21 +129,23 @@
           <div *ngIf="loading" class="loading">Loading race data...</div>
           
           <div *ngIf="!loading">
-            <!-- <h4 class="race-title">Race {{ selectedRaceNum }}</h4> -->
+            <h4 class="race-title">Race {{ selectedRaceNum }}</h4>
             <div>
               <table class="race-table">
                 <thead>
                   <tr>
                     <th>#</th>
-                    <th>Horse ( {{ totalAvg | number:'1.0-0' }} )</th>
+                    <th>Horse</th>
                     <th>Books</th>
                     <th>P&L</th>
-                    <th>Avg</th>
                   </tr>
                 </thead>
                 <tbody>
                   @for (horse of horses; track horse.horseNum) {
-                    <tr (click)="openBetslip(horse)" [style.cursor]="hasWinner ? 'not-allowed' : 'pointer'" [ngClass]="{'winner-row': horse.isWinner, 'disabled-row': hasWinner && !horse.isWinner, 'negative-profit': horse.profitLoss < 0 && !horse.isWinner}">
+                    <tr [ngClass]="{'winner-row': horse.isWinner, 'negative-profit': horse.profitLoss < 0 && !horse.isWinner}" 
+                        (click)="openBetslip(horse)"
+                        [style.cursor]="hasWinner ? 'not-allowed' : 'pointer'"
+                        [style.opacity]="hasWinner && !horse.isWinner ? '0.6' : '1'">
                       <td>{{ horse.horseNum }}</td>
                       <td class="horse-name" [ngClass]="{'strikethrough': horse.hasSpecial || horse.hasRule4}">{{ horse.horseName }}</td>
                       <td class="books">{{ (horse.hasSpecial || horse.hasRule4) ? '-' : (horse.books | number:'1.0-0') }}</td>
@@ -151,7 +153,6 @@
                         'positive': horse.profitLoss > 0,
                         'negative': horse.profitLoss < 0
                       }">{{ (horse.hasSpecial || horse.hasRule4) ? '-' : (horse.profitLoss | number:'1.0-0') }}</td>
-                      <td class="avg">{{ (horse.hasSpecial || horse.hasRule4) ? '-' : (horse.avg | number:'1.0-0') }}</td>
                     </tr>
                   }
                 </tbody>

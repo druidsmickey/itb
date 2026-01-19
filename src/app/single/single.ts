@@ -131,14 +131,17 @@ export class Single implements OnInit {
           return;
         }
         
-        setTimeout(() => {
-          this.races = races;
-          this.meetingName = races[0].meetingName;
-          this.cdr.detectChanges();
-        }, 0);
+        this.races = races;
+        this.meetingName = races[0].meetingName;
         
-        // Preload and cache params and bets
+        // Preload and cache params and bets first
         await this.loadAndCacheData();
+        
+        // Then auto-select the first race after data is cached
+        if (races.length > 0) {
+          this.selectedRaceNum = races[0].raceNum;
+          this.loadRaceData();
+        }
         
         setTimeout(() => {
           this.loading = false;
