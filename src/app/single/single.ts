@@ -116,18 +116,13 @@ export class Single implements OnInit {
   }
   
   loadSelectedRaces() {
-    setTimeout(() => {
-      this.loading = true;
-      this.cdr.detectChanges();
-    }, 0);
+    this.loading = true;
     
     this.http.get<any[]>(`${this.apiUrl}/params/selected-races`).subscribe({
       next: async (races) => {
         if (races.length === 0) {
-          setTimeout(() => {
-            this.loading = false;
-            this.cdr.detectChanges();
-          }, 0);
+          this.loading = false;
+          this.cdr.detectChanges();
           return;
         }
         
@@ -143,17 +138,13 @@ export class Single implements OnInit {
           this.loadRaceData();
         }
         
-        setTimeout(() => {
-          this.loading = false;
-          this.cdr.detectChanges();
-        }, 0);
+        this.loading = false;
+        this.cdr.detectChanges();
       },
       error: (error) => {
         console.error('Error loading races:', error);
-        setTimeout(() => {
-          this.loading = false;
-          this.cdr.detectChanges();
-        }, 0);
+        this.loading = false;
+        this.cdr.detectChanges();
       }
     });
   }
