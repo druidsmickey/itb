@@ -42,8 +42,32 @@
         <div class="horse-name-display"># {{ selectedHorseName }}</div>
       </div>
 
+      <!-- Bet Option Selection -->
+      <div class="full-width" style="display: flex; gap: 8px; flex-wrap: nowrap; align-items: center; flex-direction: row !important;">
+        <!-- <label>Bet Type:</label> -->
+        <mat-radio-group [(ngModel)]="betType" class="radio-buttons" style="flex-shrink: 0;">
+          <mat-radio-button value="sales">Sales</mat-radio-button>
+          <mat-radio-button value="purchase">Pur</mat-radio-button>
+        </mat-radio-group>
+        <mat-radio-group [(ngModel)]="oddsType" class="radio-buttons" style="flex-shrink: 0;">
+          <mat-radio-button value="f500">F500</mat-radio-button>
+          <mat-radio-button value="odds">Odds</mat-radio-button>
+        </mat-radio-group>
+      </div>
+      
+      <!-- Recent Clients -->
+      <div class="full-width" *ngIf="recentClients.length > 0" style="display: flex; gap: 5px; flex-wrap: wrap; margin-bottom: 2px;">
+        <button 
+          *ngFor="let client of recentClients" 
+          mat-mini-fab
+          (click)="selectClient(client)"
+          class="client-btn"
+          style="font-size: 14px; padding: 0 12px; min-width: 0; height: 36px;">
+          {{ client }}
+        </button>
+      </div>
 
-      <!-- All Inputs in One Row -->
+            <!-- All Inputs in One Row -->
       <div class="full-width" style="display: flex; gap: 4px; flex-wrap: wrap;">
         <mat-form-field appearance="outline" style="flex: 1; min-width: 100px;">
           <mat-label>{{ oddsType === 'odds' ? 'Stakes' : 'Books' }}</mat-label>
@@ -71,33 +95,7 @@
           <input matInput type="number" [(ngModel)]="tax">
         </mat-form-field>
       </div>
-
-
-
-      <!-- Bet Option Selection -->
-      <div class="full-width" style="display: flex; gap: 8px; flex-wrap: nowrap; align-items: center; flex-direction: row !important;">
-        <!-- <label>Bet Type:</label> -->
-        <mat-radio-group [(ngModel)]="betType" class="radio-buttons" style="flex-shrink: 0;">
-          <mat-radio-button value="sales">Sales</mat-radio-button>
-          <mat-radio-button value="purchase">Pur</mat-radio-button>
-        </mat-radio-group>
-        <mat-radio-group [(ngModel)]="oddsType" class="radio-buttons" style="flex-shrink: 0;">
-          <mat-radio-button value="f500">F500</mat-radio-button>
-          <mat-radio-button value="odds">Odds</mat-radio-button>
-        </mat-radio-group>
-      </div>
       
-      <!-- Recent Clients -->
-      <div class="full-width" *ngIf="recentClients.length > 0" style="display: flex; gap: 5px; flex-wrap: wrap; margin-bottom: 2px;">
-        <button 
-          *ngFor="let client of recentClients" 
-          mat-mini-fab
-          (click)="selectClient(client)"
-          class="client-btn"
-          style="font-size: 14px; padding: 0 12px; min-width: 0; height: 36px;">
-          {{ client }}
-        </button>
-      </div>
       <!-- Action Buttons and Last Bet -->
       <div class="full-width" style="display: flex; gap: 8px; align-items: stretch;">
         <button mat-raised-button color="primary" (click)="saveBet()" style="flex: 1; height: 80px; font-size: 1.5rem; background-color: #1976d2; color: white;">

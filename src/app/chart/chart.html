@@ -1,8 +1,8 @@
 <mat-sidenav-container class="chart-container">
-  <mat-sidenav #sidenav position="end" mode="side" [style.width.px]="300">
+  <mat-sidenav #sidenav position="end" mode="over" class="betslip-sidenav">
     <div class="sidenav-content">
-      <h3>Add Bet - Race {{ selectedRaceNum }}</h3>
-      
+      <h3>R {{ selectedRaceNum }} - <span class="horse-name-display" style="color: red; font-size: 1.35rem; font-weight: bold;"># {{ betslipSelectedHorseName }}</span></h3>
+     
       <div class="form-grid">
         <!-- Horse Selection -->
         <div class="full-width radio-group">
