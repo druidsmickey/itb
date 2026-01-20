@@ -1,5 +1,5 @@
 <mat-sidenav-container class="chart-container">
-  <mat-sidenav #sidenav position="end" mode="over" class="betslip-sidenav" [ngClass]="{'purchase-bg': betType === 'purchase'}">
+  <mat-sidenav #sidenav position="end" mode="over" class="betslip-sidenav" [ngClass]="{'purchase-bg': betType === 'purchase'}" (closed)="resetBetslipForm()">
     <div class="betslip-content">
       <h3>R {{ selectedRaceNum }} - <span class="horse-name-display" style="color: red; font-size: 1.35rem; font-weight: bold;"># {{ betslipSelectedHorseName }}</span></h3>
      
@@ -91,7 +91,7 @@
               </div>
             </div>
           </div>
-          <button mat-raised-button (click)="sidenav.close()">
+          <button mat-raised-button (click)="closeSidenav()">
             Close
           </button>
         </div>

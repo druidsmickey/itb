@@ -414,6 +414,11 @@ export class Chart implements OnInit {
     this.cdr.detectChanges();
   }
 
+  closeSidenav() {
+    this.resetBetslipForm();
+    this.sidenav.close();
+  }
+
   validateStakeBooks() {
     if (this.stakeBooks !== null && this.stakeBooks !== undefined) {
       if (this.oddsType === 'f500') {
