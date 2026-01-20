@@ -47,7 +47,7 @@
 
                 <!-- All Inputs in One Row -->
         <div class="full-width" style="display: flex; gap: 4px; flex-wrap: nowrap;">
-          <mat-form-field appearance="outline" style="flex: 1; min-width: 80px;">
+          <mat-form-field appearance="outline" style="flex: 1; min-width: 100px;">
             <mat-label>{{ oddsType === 'odds' ? 'Stakes' : 'Books' }}</mat-label>
             <input matInput type="number" [(ngModel)]="stakeBooks" 
                    (input)="validateStakeBooks()" 
@@ -63,17 +63,17 @@
             <mat-error *ngIf="oddsError">{{ oddsError }}</mat-error>
           </mat-form-field>
 
-          <mat-form-field appearance="outline" style="flex: 1.5; min-width: 60px;">
+          <mat-form-field appearance="outline" style="flex: 1.5; min-width: 50px;">
             <mat-label>Name</mat-label>
             <input matInput [(ngModel)]="clientName" (input)="onClientNameInput()">
           </mat-form-field>
 
-          <mat-form-field appearance="outline" style="flex: 0.8; min-width: 50px;">
+          <mat-form-field appearance="outline" style="flex: 0.8; min-width: 40px;">
             <mat-label>Tax</mat-label>
             <input matInput type="number" [(ngModel)]="tax">
           </mat-form-field>
         </div>
-        
+
         <!-- Action Buttons and Last Bet -->
         <div class="full-width" style="display: flex; gap: 8px; align-items: stretch; flex-direction: column;">
           <div style="display: flex; gap: 8px;">
