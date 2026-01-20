@@ -1,5 +1,5 @@
 <mat-sidenav-container class="chart-container">
-  <mat-sidenav #sidenav position="end" mode="over" class="betslip-sidenav">
+  <mat-sidenav #sidenav position="end" mode="over" class="betslip-sidenav" [ngClass]="{'purchase-bg': betType === 'purchase'}">
     <div class="betslip-content">
       <h3>R {{ selectedRaceNum }} - <span class="horse-name-display" style="color: red; font-size: 1.35rem; font-weight: bold;"># {{ betslipSelectedHorseName }}</span></h3>
      
