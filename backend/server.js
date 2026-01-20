@@ -206,7 +206,11 @@ app.get('/api/bets/recent-clients', async (req, res) => {
     const recentClients = await Bets.aggregate([
       { $match: { clientName: { $exists: true, $ne: '' } } },
       { $sort: { betTime: -1 } },
-      { $group: { _id: '$clientName' } },
+      { $group: { 
+        _id: '$clientName',
+        firstBetTime: { $first: '$betTime' }
+      }},
+      { $sort: { firstBetTime: -1 } },
       { $limit: 6 },
       { $project: { _id: 0, clientName: '$_id' } }
     ]);
