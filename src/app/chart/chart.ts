@@ -321,6 +321,9 @@ export class Chart implements OnInit {
     // Select the clicked horse
     this.selectBetslipHorse(horseNum);
     
+    // Scroll to top before opening sidenav
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    
     // Open sidenav
     this.sidenav.open();
   }
