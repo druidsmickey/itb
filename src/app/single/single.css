@@ -186,7 +186,7 @@
 }
 
 .betslip-sidenav {
-  width: 320px;
+  width: 330px;
   padding: 1rem;
   background: #f9fafb;
 }
@@ -214,14 +214,14 @@
 }
 
 .radio-group {
-  padding: 4px 0;
+  padding: 0;
 }
 
 .horse-buttons {
   display: flex;
   flex-wrap: wrap;
   gap: 3px;
-  margin-bottom: 8px;
+  margin-bottom: 2px;
   overflow: visible;
   justify-content: flex-start;
   width: 100%;
