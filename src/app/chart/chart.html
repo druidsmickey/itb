@@ -1,6 +1,6 @@
 <mat-sidenav-container class="chart-container">
   <mat-sidenav #sidenav position="end" mode="over" class="betslip-sidenav">
-    <div class="sidenav-content">
+    <div class="betslip-content">
       <h3>R {{ selectedRaceNum }} - <span class="horse-name-display" style="color: red; font-size: 1.35rem; font-weight: bold;"># {{ betslipSelectedHorseName }}</span></h3>
      
       <div class="form-grid">
@@ -18,43 +18,14 @@
               {{ horse.horseNum }}
             </button>
           </div>
-          <div class="horse-name-display"># {{ betslipSelectedHorseName }}</div>
-        </div>
 
-        <!-- All Inputs in One Row -->
-        <div class="full-width" style="display: flex; gap: 4px; flex-wrap: wrap;">
-          <mat-form-field appearance="outline" style="flex: 1; min-width: 100px;">
-            <mat-label>{{ oddsType === 'odds' ? 'Stakes' : 'Books' }}</mat-label>
-            <input matInput type="number" [(ngModel)]="stakeBooks" 
-                   (input)="validateStakeBooks()" 
-                   (blur)="validateStakeBooks()">
-            <mat-error *ngIf="stakeBooksError">{{ stakeBooksError }}</mat-error>
-          </mat-form-field>
-
-          <mat-form-field appearance="outline" style="flex: 1; min-width: 80px;" [style.background-color]="oddsType === 'odds' ? '#1976d2' : 'transparent'">
-            <mat-label>{{ oddsType === 'odds' ? 'Odds' : 'F500' }}</mat-label>
-            <input matInput type="number" [(ngModel)]="odds" 
-                   (input)="validateOdds()" 
-                   (blur)="validateOdds()">
-            <mat-error *ngIf="oddsError">{{ oddsError }}</mat-error>
-          </mat-form-field>
-
-          <mat-form-field appearance="outline" style="flex: 1.5; min-width: 80px;">
-            <mat-label>Name</mat-label>
-            <input matInput [(ngModel)]="clientName" (input)="onClientNameInput()">
-          </mat-form-field>
-
-          <mat-form-field appearance="outline" style="flex: 0.8; min-width: 60px;">
-            <mat-label>Tax</mat-label>
-            <input matInput type="number" [(ngModel)]="tax">
-          </mat-form-field>
         </div>
 
         <!-- Bet Option Selection -->
         <div class="full-width" style="display: flex; gap: 8px; flex-wrap: nowrap; align-items: center; flex-direction: row !important;">
           <mat-radio-group [(ngModel)]="betType" class="radio-buttons" style="flex-shrink: 0;">
-            <mat-radio-button value="sales">Sales</mat-radio-button>
-            <mat-radio-button value="purchase">Pur</mat-radio-button>
+            <mat-radio-button value="sales">S</mat-radio-button>
+            <mat-radio-button value="purchase">P</mat-radio-button>
           </mat-radio-group>
           <mat-radio-group [(ngModel)]="oddsType" class="radio-buttons" style="flex-shrink: 0;">
             <mat-radio-button value="f500">F500</mat-radio-button>
@@ -74,21 +45,55 @@
           </button>
         </div>
 
+        <!-- All Inputs in One Row -->
+        <div class="full-width" style="display: flex; gap: 4px; flex-wrap: nowrap;">
+          <mat-form-field appearance="outline" style="flex: 1; min-width: 80px;">
+            <mat-label>{{ oddsType === 'odds' ? 'Stakes' : 'Books' }}</mat-label>
+            <input matInput type="number" [(ngModel)]="stakeBooks" 
+                   (input)="validateStakeBooks()" 
+                   (blur)="validateStakeBooks()">
+            <mat-error *ngIf="stakeBooksError">{{ stakeBooksError }}</mat-error>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" style="flex: 1; min-width: 60px;" [style.background-color]="oddsType === 'odds' ? '#1976d2' : 'transparent'">
+            <mat-label>{{ oddsType === 'odds' ? 'Odds' : 'F500' }}</mat-label>
+            <input matInput type="number" [(ngModel)]="odds" 
+                   (input)="validateOdds()" 
+                   (blur)="validateOdds()">
+            <mat-error *ngIf="oddsError">{{ oddsError }}</mat-error>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" style="flex: 1.5; min-width: 60px;">
+            <mat-label>Name</mat-label>
+            <input matInput [(ngModel)]="clientName" (input)="onClientNameInput()">
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" style="flex: 0.8; min-width: 50px;">
+            <mat-label>Tax</mat-label>
+            <input matInput type="number" [(ngModel)]="tax">
+          </mat-form-field>
+        </div>
+
         <!-- Action Buttons and Last Bet -->
-        <div class="full-width" style="display: flex; gap: 8px; align-items: stretch;">
-          <button mat-raised-button color="primary" (click)="saveBet()" style="flex: 1; height: 80px; font-size: 1.5rem; background-color: #1976d2; color: white;">
-            Save Bet
-          </button>
-          <div *ngIf="lastBet" [style.background-color]="lastBet.stake < 0 || lastBet.books < 0 ? '#fee2e2' : '#f0f9ff'" style="flex: 1; padding: 8px; border: 1px solid #ddd; border-radius: 4px; display: flex; flex-direction: column; justify-content: center;">
-            <div style="font-size: 0.975rem; line-height: 1.4;" [style.text-decoration]="lastBet.cancelled ? 'line-through' : 'none'">
-              <div><strong style="color: black;">{{ lastBet.clientName }}</strong></div>
-              <div><strong style="color: rgb(34, 110, 35)">R{{ lastBet.raceNum }} H{{ lastBet.horseNum }} {{ lastBet.horseName }}</strong></div>
-              <div>
-                <strong *ngIf="lastBet.f500">{{ lastBet.books < 0 ? -lastBet.books : lastBet.books }} x {{ lastBet.f500 }}</strong>
-                <strong *ngIf="!lastBet.f500">{{ lastBet.stake < 0 ? -lastBet.stake : lastBet.stake }} @ <span style="color: #1976d2;">{{ lastBet.odds100 }}</span></strong>
+        <div class="full-width" style="display: flex; gap: 8px; align-items: stretch; flex-direction: column;">
+          <div style="display: flex; gap: 8px;">
+            <button mat-raised-button color="primary" (click)="saveBet()" style="flex: 1; height: 80px; font-size: 1.5rem; background-color: #1976d2; color: white;">
+              Save Bet
+            </button>
+            <div *ngIf="lastBet" [style.background-color]="lastBet.stake < 0 || lastBet.books < 0 ? '#fee2e2' : '#f0f9ff'" style="flex: 1; padding: 8px; border: 1px solid #ddd; border-radius: 4px; display: flex; flex-direction: column; justify-content: center;">
+              <div style="font-size: 0.975rem; line-height: 1.4;" [style.text-decoration]="lastBet.cancelled ? 'line-through' : 'none'">
+                <div><strong style="color: black;">{{ lastBet.clientName }}</strong></div>
+                <div><strong style="color: rgb(34, 110, 35)">R{{ lastBet.raceNum }} H{{ lastBet.horseNum }} {{ lastBet.horseName }}</strong></div>
+                <div>
+                  <strong *ngIf="lastBet.f500">{{ lastBet.books < 0 ? -lastBet.books : lastBet.books }} x {{ lastBet.f500 }}</strong>
+                  <strong *ngIf="!lastBet.f500">{{ lastBet.stake < 0 ? -lastBet.stake : lastBet.stake }} @ <span style="color: #1976d2;">{{ lastBet.odds100 }}</span></strong>
+                </div>
               </div>
             </div>
           </div>
+          <button mat-raised-button (click)="sidenav.close()">
+            Close
+          </button>
         </div>
       </div>
     </div>
