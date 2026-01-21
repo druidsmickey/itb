@@ -2,6 +2,7 @@ import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
+import { environment } from '../../environments/environment';
 
 interface ClientReport {
   clientName: string;
@@ -19,7 +20,7 @@ interface ClientReport {
   styleUrl: './merge.css',
 })
 export class Merge implements OnInit {
-  private apiUrl = 'http://localhost:3000/api';
+  private apiUrl = `${environment.apiUrl}/api`;
   
   allMeetings: string[] = [];
   selectedMeetings: string[] = [];

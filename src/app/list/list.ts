@@ -2,6 +2,7 @@ import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
 import { FormsModule } from '@angular/forms';
+import { environment } from '../../environments/environment';
 
 @Component({
   selector: 'app-listdata',
@@ -12,7 +13,7 @@ import { FormsModule } from '@angular/forms';
 })
 
 export class ListdataComponent implements OnInit {
-  private apiUrl = 'http://localhost:3000/api';
+  private apiUrl = `${environment.apiUrl}/api`;
   
   items: any[] = [];
   searchRaceNum: number | null = null;

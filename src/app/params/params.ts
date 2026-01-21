@@ -9,6 +9,7 @@ import { MatCardModule } from '@angular/material/card';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatNativeDateModule } from '@angular/material/core';
+import { environment } from '../../environments/environment';
 
 interface ParamRow {
   meetingName: string;
@@ -38,7 +39,7 @@ interface ParamRow {
   styleUrl: './params.css',
 })
 export class Params implements OnInit {
-  private apiUrl = 'http://localhost:3000/api';
+  private apiUrl = `${environment.apiUrl}/api`;
   
   displayedColumns: string[] = ['raceNum', 'horseNum', 'horseName', 'special', 'rule4', 'rule4deduct'];
   dataSource: ParamRow[] = [];

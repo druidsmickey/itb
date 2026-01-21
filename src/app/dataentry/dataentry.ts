@@ -10,6 +10,7 @@ import { MatCardModule } from '@angular/material/card';
 import { MatRadioModule } from '@angular/material/radio';
 import { MatChipsModule } from '@angular/material/chips';
 import { RecentClientsService } from '../services/recent-clients.service';
+import { environment } from '../../environments/environment';
 
 interface Race {
   raceNum: number;
@@ -43,7 +44,7 @@ interface Horse {
   styleUrl: './dataentry.css',
 })
 export class Dataentry implements OnInit {
-  private apiUrl = 'http://localhost:3000/api';
+  private apiUrl = `${environment.apiUrl}/api`;
   
   races: Race[] = [];
   horses: Horse[] = [];

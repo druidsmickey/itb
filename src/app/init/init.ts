@@ -8,6 +8,7 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatCheckboxModule } from '@angular/material/checkbox';
+import { environment } from '../../environments/environment';
 
 interface Race {
   raceNum: number;
@@ -32,7 +33,7 @@ interface Race {
   styleUrl: './init.css',
 })
 export class Init implements OnInit {
-  private apiUrl = 'http://localhost:3000/api';
+  private apiUrl = `${environment.apiUrl}/api`;
   
   meetingNames: string[] = [];
   selectedMeeting: string = '';

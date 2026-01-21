@@ -4,6 +4,7 @@ import { HttpClient } from '@angular/common/http';
 import { MatTableModule } from '@angular/material/table';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatButtonModule } from '@angular/material/button';
+import { environment } from '../../environments/environment';
 
 interface HorseParam {
   _id: string;
@@ -29,7 +30,7 @@ interface RaceGroup {
   styleUrl: './winners.css',
 })
 export class Winners implements OnInit {
-  private apiUrl = 'http://localhost:3000/api';
+  private apiUrl = `${environment.apiUrl}/api`;
   
   raceGroups: RaceGroup[] = [];
   loading: boolean = true;

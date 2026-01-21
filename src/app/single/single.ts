@@ -9,6 +9,7 @@ import { MatInputModule } from '@angular/material/input';
 import { MatRadioModule } from '@angular/material/radio';
 import { MatSidenav } from '@angular/material/sidenav';
 import { RecentClientsService } from '../services/recent-clients.service';
+import { environment } from '../../environments/environment';
 
 interface Horse {
   horseNum: number;
@@ -43,7 +44,7 @@ interface Race {
   styleUrl: './single.css',
 })
 export class Single implements OnInit {
-  private apiUrl = 'http://localhost:3000/api';
+  private apiUrl = `${environment.apiUrl}/api`;
   
   @ViewChild('sidenav') sidenav!: MatSidenav;
   
