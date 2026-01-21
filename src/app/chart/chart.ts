@@ -387,7 +387,7 @@ export class Chart implements OnInit {
     
     this.http.post(`${this.apiUrl}/bets`, betData).subscribe({
       next: async (response) => {
-        alert('Bet saved successfully!');
+        //         alert('Bet saved successfully!');
         // Reload recent clients from database
         await this.loadRecentClients();
         // Reload last bet from database
