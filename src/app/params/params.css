@@ -60,6 +60,10 @@ h2 {
   width: 100%;
 }
 
+.params-table .mat-mdc-row:nth-child(even) {
+  background: #f0fdf4;
+}
+
 .small-field {
   max-width: 60px;
 }
