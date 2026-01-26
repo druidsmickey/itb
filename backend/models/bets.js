@@ -7,11 +7,11 @@ const betsSchema = new mongoose.Schema({
   },
   raceNum: {
     type: Number,
-    required: false
+    required: true
   },
   horseNum: {
     type: Number,
-    required: false
+    required: true
   },
   horseName: {
     type: String,
@@ -43,11 +43,11 @@ const betsSchema = new mongoose.Schema({
   },
   payout: {
     type: Number,
-    required: false
+    required: true
   },
   tax: {
     type: Number,
-    required: false
+    required: true
   },
   cancelled: {
     type: Boolean,
