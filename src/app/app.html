@@ -49,4 +49,12 @@
       <app-change-password></app-change-password>
     </ng-template>
   </mat-tab>
+  <mat-tab label="">
+    <ng-template matTabLabel>
+      <button (click)="onLogout()" class="logout-btn" style="margin-top: 2px;">Logout</button>
+    </ng-template>
+    <ng-template matTabContent>
+      <!-- Empty: button is in tab bar only -->
+    </ng-template>
+  </mat-tab>
 </mat-tab-group>

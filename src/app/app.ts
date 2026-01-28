@@ -1,4 +1,4 @@
-import { Component, signal } from '@angular/core';
+import { Component, signal, inject } from '@angular/core';
 import { MatTabsModule } from '@angular/material/tabs';
 import { Dataentry } from './dataentry/dataentry';
 import { Single } from './single/single';
@@ -10,6 +10,7 @@ import { Params } from './params/params';
 import { Init } from './init/init';
 import { Merge } from './merge/merge';
 import { ChangePassword } from './change-password/change-password';
+import { AuthService } from './services/auth.service';
 
 @Component({
   selector: 'app-root',
@@ -19,4 +20,9 @@ import { ChangePassword } from './change-password/change-password';
 })
 export class App {
   protected readonly title = signal('itb');
+  private auth = inject(AuthService);
+
+  onLogout() {
+    this.auth.logout();
+  }
 }
