@@ -30,17 +30,14 @@ jobs:
             jwt: CUMBRE_JWT_SECRET
 
     steps:
-      # 1️⃣ Checkout code
       - name: Checkout repo
         uses: actions/checkout@v3
 
-      # 2️⃣ Setup Node.js
       - name: Setup Node
         uses: actions/setup-node@v3
         with:
           node-version: 20
 
-      # 3️⃣ Fix Angular animations dependency (MANDATORY)
       - name: Fix Angular animations dependency
         run: |
           rm -rf node_modules package-lock.json
@@ -48,13 +45,11 @@ jobs:
           npm install @angular/animations@21 --save
           npm install
 
-      # 4️⃣ Inject apiUrl & build frontend
       - name: Build frontend (${{ matrix.app.name }})
         run: |
           sed -i "s|apiUrl:.*|apiUrl: '${{ matrix.app.apiUrl }}'|g" src/environments/environment.prod.ts
           npm run build -- --configuration production --base-href ${{ matrix.app.baseHref }}
 
-      # 5️⃣ Deploy files to server (ONLY into /itb)
       - name: Deploy ${{ matrix.app.name }} to server
         uses: easingthemes/ssh-deploy@main
         env:
@@ -63,7 +58,6 @@ jobs:
           REMOTE_USER: ${{ secrets.USERNAME }}
           TARGET: ${{ matrix.app.target }}
 
-      # 6️⃣ Create .env & restart backend
       - name: Configure backend (${{ matrix.app.name }})
         uses: appleboy/ssh-action@v0.1.9
         with:
