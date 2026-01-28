@@ -40,10 +40,9 @@ jobs:
         with:
           node-version: 20
 
-      # 3️⃣ Fix Angular dependency issue (MANDATORY)
+      # 3️⃣ Fix Angular animations dependency (repo root)
       - name: Fix Angular animations dependency
         run: |
-          cd itb
           rm -rf node_modules package-lock.json
           npm cache clean --force
           npm install @angular/animations@21 --save
@@ -52,7 +51,6 @@ jobs:
       # 4️⃣ Inject apiUrl & build frontend
       - name: Build frontend (${{ matrix.app.name }})
         run: |
-          cd itb
           sed -i "s|apiUrl:.*|apiUrl: '${{ matrix.app.apiUrl }}'|g" src/environments/environment.prod.ts
           npm run build -- --configuration production --base-href ${{ matrix.app.baseHref }}
 
@@ -65,7 +63,7 @@ jobs:
           REMOTE_USER: ${{ secrets.USERNAME }}
           TARGET: ${{ matrix.app.target }}
 
-      # 6️⃣ Create .env & restart backend
+      # 6️⃣ Create .env & restart backend (SERVER SIDE)
       - name: Configure backend (${{ matrix.app.name }})
         uses: appleboy/ssh-action@v0.1.9
         with:
@@ -73,14 +71,10 @@ jobs:
           username: ${{ secrets.USERNAME }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
-            cd ${{ matrix.app.target }}/itb/backend
+            cd ${{ matrix.app.target }}/backend
 
             cat <<EOF > .env
             PORT=${{ matrix.app.port }}
             MONGODB_URI=${{ secrets[matrix.app.mongo] }}
             JWT_SECRET=${{ secrets[matrix.app.jwt] }}
             EOF
-
-            npm install
-            pm2 restart ${{ matrix.app.pm2 }} || pm2 start server.js --name ${{ matrix.app.pm2 }}
-            pm2 save
