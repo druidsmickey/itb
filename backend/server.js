@@ -59,6 +59,9 @@ app.get('/health', (req, res) => {
   });
 });
 
+// Protect all /api routes with authentication
+app.use('/api', authenticateToken);
+
 // Init API endpoints
 
 // Get all meeting names
