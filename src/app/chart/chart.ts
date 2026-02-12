@@ -26,6 +26,7 @@ interface Race {
   raceNum: number;
   horses: Horse[];
   hasWinner: boolean;
+  totalAvg: number;
 }
 
 @Component({
@@ -275,7 +276,8 @@ export class Chart implements OnInit {
         .map(([raceNum, horses]) => ({
           raceNum,
           horses: horses.sort((a, b) => a.horseNum - b.horseNum),
-          hasWinner: horses.some(h => h.isWinner)
+          hasWinner: horses.some(h => h.isWinner),
+          totalAvg: horses.reduce((sum, h) => sum + h.avg, 0)
         }))
         .sort((a, b) => a.raceNum - b.raceNum);
       

@@ -113,7 +113,7 @@
         <div class="race-pair">
           @for (race of racePair; track race.raceNum) {
             <div class="race-table-wrapper">
-              <h4 class="race-title">Race {{ race.raceNum }}</h4>
+              <h4 class="race-title">Race {{ race.raceNum }} (<span style="color: rgb(0, 149, 255);">{{ race.totalAvg | number:'1.0-0' }}</span>)</h4>
               <table class="race-table">
                 <thead>
                   <tr>
