@@ -137,6 +137,7 @@
                     <th>Horse</th>
                     <th>Books</th>
                     <th>P&L</th>
+                    <th>Avg</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -152,9 +153,16 @@
                         'positive': horse.profitLoss > 0,
                         'negative': horse.profitLoss < 0
                       }">{{ (horse.hasSpecial || horse.hasRule4) ? '-' : (horse.profitLoss | number:'1.0-0') }}</td>
+                      <td class="avg">{{ (horse.hasSpecial || horse.hasRule4) ? '-' : (horse.avg | number:'1.0-0') }}</td>
                     </tr>
                   }
                 </tbody>
+                <tfoot>
+                  <tr>
+                    <td colspan="4" style="text-align: right; font-weight: bold;">Total:</td>
+                    <td style="font-weight: bold;">{{ totalAvg | number:'1.0-0' }}</td>
+                  </tr>
+                </tfoot>
               </table>
             </div>
           </div>
