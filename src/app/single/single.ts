@@ -1,8 +1,4 @@
-<<<<<<< HEAD
-import { Component, OnInit, ChangeDetectorRef, ViewChild } from '@angular/core';
-=======
 import { Component, OnInit, ChangeDetectorRef, ViewChild, ChangeDetectionStrategy, inject } from '@angular/core';
->>>>>>> 9aac1f3c2fd33f2f8c91f8ebd961a239a611b9b0
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
@@ -13,10 +9,7 @@ import { MatInputModule } from '@angular/material/input';
 import { MatRadioModule } from '@angular/material/radio';
 import { MatSidenav } from '@angular/material/sidenav';
 import { RecentClientsService } from '../services/recent-clients.service';
-<<<<<<< HEAD
-=======
 import { MeetingDataService } from '../services/meeting-data.service';
->>>>>>> 9aac1f3c2fd33f2f8c91f8ebd961a239a611b9b0
 import { environment } from '../../environments/environment';
 
 interface Horse {
@@ -50,10 +43,7 @@ interface Race {
   ],
   templateUrl: './single.html',
   styleUrl: './single.css',
-<<<<<<< HEAD
-=======
   changeDetection: ChangeDetectionStrategy.OnPush,
->>>>>>> 9aac1f3c2fd33f2f8c91f8ebd961a239a611b9b0
 })
 export class Single implements OnInit {
   private apiUrl = `${environment.apiUrl}/api`;
@@ -92,11 +82,8 @@ export class Single implements OnInit {
   odds: number | null = null;
   tax: number | null = 5;
   
-<<<<<<< HEAD
-=======
   private meetingData = inject(MeetingDataService);
 
->>>>>>> 9aac1f3c2fd33f2f8c91f8ebd961a239a611b9b0
   constructor(
     private http: HttpClient, 
     private cdr: ChangeDetectorRef,
@@ -114,20 +101,6 @@ export class Single implements OnInit {
     this.cdr.detectChanges();
   }
   
-<<<<<<< HEAD
-  loadLastBet() {
-    this.http.get<any>(`${this.apiUrl}/bets/last`).subscribe({
-      next: (bet) => {
-        if (bet) {
-          this.lastBet = bet;
-          this.cdr.detectChanges();
-        }
-      },
-      error: (error) => {
-        console.error('Error loading last bet:', error);
-      }
-    });
-=======
   async loadLastBet() {
     try {
       const bet = await this.meetingData.getLastBet();
@@ -138,7 +111,6 @@ export class Single implements OnInit {
     } catch (error) {
       console.error('Error loading last bet:', error);
     }
->>>>>>> 9aac1f3c2fd33f2f8c91f8ebd961a239a611b9b0
   }
   
   selectClient(clientName: string) {
@@ -146,40 +118,6 @@ export class Single implements OnInit {
     this.cdr.detectChanges();
   }
   
-<<<<<<< HEAD
-  loadSelectedRaces() {
-    this.loading = true;
-    
-    this.http.get<any[]>(`${this.apiUrl}/params/selected-races`).subscribe({
-      next: async (races) => {
-        if (races.length === 0) {
-          this.loading = false;
-          this.cdr.detectChanges();
-          return;
-        }
-        
-        this.races = races;
-        this.meetingName = races[0].meetingName;
-        
-        // Preload and cache params and bets first
-        await this.loadAndCacheData();
-        
-        // Then auto-select the first race after data is cached
-        if (races.length > 0) {
-          this.selectedRaceNum = races[0].raceNum;
-          this.loadRaceData();
-        }
-        
-        this.loading = false;
-        this.cdr.detectChanges();
-      },
-      error: (error) => {
-        console.error('Error loading races:', error);
-        this.loading = false;
-        this.cdr.detectChanges();
-      }
-    });
-=======
   async loadSelectedRaces() {
     this.loading = true;
     try {
@@ -207,21 +145,10 @@ export class Single implements OnInit {
       this.loading = false;
       this.cdr.detectChanges();
     }
->>>>>>> 9aac1f3c2fd33f2f8c91f8ebd961a239a611b9b0
   }
   
   async loadAndCacheData() {
     try {
-<<<<<<< HEAD
-      // Load params and bets once and cache them
-      const [params, bets] = await Promise.all([
-        this.http.get<any[]>(`${this.apiUrl}/params?meetingName=${encodeURIComponent(this.meetingName)}`).toPromise(),
-        this.http.get<any[]>(`${this.apiUrl}/bets?meetingName=${encodeURIComponent(this.meetingName)}`).toPromise()
-      ]);
-      
-      this.cachedParams = params || [];
-      this.cachedBets = bets || [];
-=======
       const [params, bets] = await Promise.all([
         this.meetingData.getParams(),
         this.meetingData.getBets()
@@ -229,7 +156,6 @@ export class Single implements OnInit {
       
       this.cachedParams = params;
       this.cachedBets = bets;
->>>>>>> 9aac1f3c2fd33f2f8c91f8ebd961a239a611b9b0
     } catch (error) {
       console.error('Error loading data:', error);
       this.cachedParams = [];
@@ -446,19 +372,6 @@ export class Single implements OnInit {
     
     this.http.post(`${this.apiUrl}/bets`, betData).subscribe({
       next: async (response) => {
-<<<<<<< HEAD
-        //         alert('Bet saved successfully!');
-        // Reload recent clients from database
-        await this.loadRecentClients();
-        // Reload last bet from database
-        this.loadLastBet();
-        
-        // Reload cached bets to update chart
-        const bets = await this.http.get<any[]>(`${this.apiUrl}/bets?meetingName=${encodeURIComponent(this.meetingName)}`).toPromise();
-        this.cachedBets = bets || [];
-        
-        this.loadRaceData(); // Reload race data with updated cache
-=======
         this.meetingData.invalidateBets();
         await this.loadRecentClients();
         await this.loadLastBet();
@@ -467,7 +380,6 @@ export class Single implements OnInit {
         this.cachedBets = await this.meetingData.getBets();
         
         this.loadRaceData();
->>>>>>> 9aac1f3c2fd33f2f8c91f8ebd961a239a611b9b0
         setTimeout(() => this.resetBetslipForm(), 0);
       },
       error: (error) => {

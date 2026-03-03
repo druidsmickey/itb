@@ -1,9 +1,5 @@
 import { CommonModule } from '@angular/common';
-<<<<<<< HEAD
-import { Component, ChangeDetectorRef } from '@angular/core';
-=======
 import { Component, ChangeDetectorRef, ChangeDetectionStrategy } from '@angular/core';
->>>>>>> 9aac1f3c2fd33f2f8c91f8ebd961a239a611b9b0
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { AuthService } from '../services/auth.service';
@@ -14,10 +10,7 @@ import { AuthService } from '../services/auth.service';
   imports: [CommonModule, FormsModule],
   templateUrl: './change-password.html',
   styleUrl: './change-password.css',
-<<<<<<< HEAD
-=======
   changeDetection: ChangeDetectionStrategy.OnPush,
->>>>>>> 9aac1f3c2fd33f2f8c91f8ebd961a239a611b9b0
 })
 export class ChangePassword {
   currentPassword = '';

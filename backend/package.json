@@ -14,10 +14,7 @@
   "type": "commonjs",
   "dependencies": {
     "bcryptjs": "^2.4.3",
-<<<<<<< HEAD
-=======
     "compression": "^1.8.1",
->>>>>>> 9aac1f3c2fd33f2f8c91f8ebd961a239a611b9b0
     "cors": "^2.8.5",
     "dotenv": "^17.2.3",
     "express": "^5.2.1",

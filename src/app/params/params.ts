@@ -1,8 +1,4 @@
-<<<<<<< HEAD
-import { Component, OnInit, ChangeDetectorRef  } from '@angular/core';
-=======
 import { Component, OnInit, ChangeDetectorRef, ChangeDetectionStrategy, inject } from '@angular/core';
->>>>>>> 9aac1f3c2fd33f2f8c91f8ebd961a239a611b9b0
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
@@ -13,22 +9,15 @@ import { MatCardModule } from '@angular/material/card';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatNativeDateModule } from '@angular/material/core';
-<<<<<<< HEAD
-import { environment } from '../../environments/environment';
-=======
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { environment } from '../../environments/environment';
 import { MeetingDataService } from '../services/meeting-data.service';
->>>>>>> 9aac1f3c2fd33f2f8c91f8ebd961a239a611b9b0
 
 interface ParamRow {
   meetingName: string;
   raceNum: number;
   horseNum: number;
-<<<<<<< HEAD
-=======
   rowIndex: number;
->>>>>>> 9aac1f3c2fd33f2f8c91f8ebd961a239a611b9b0
   horseName: string;
   special: Date | null;
   rule4: Date | null;
@@ -47,19 +36,12 @@ interface ParamRow {
     MatCardModule,
     MatFormFieldModule,
     MatDatepickerModule,
-<<<<<<< HEAD
-    MatNativeDateModule
-  ],
-  templateUrl: './params.html',
-  styleUrl: './params.css',
-=======
     MatNativeDateModule,
     MatProgressSpinnerModule
   ],
   templateUrl: './params.html',
   styleUrl: './params.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
->>>>>>> 9aac1f3c2fd33f2f8c91f8ebd961a239a611b9b0
 })
 export class Params implements OnInit {
   private apiUrl = `${environment.apiUrl}/api`;
@@ -67,15 +49,11 @@ export class Params implements OnInit {
   displayedColumns: string[] = ['raceNum', 'horseNum', 'horseName', 'special', 'rule4', 'rule4deduct'];
   dataSource: ParamRow[] = [];
   raceGroups: { [key: number]: ParamRow[] } = {};
-<<<<<<< HEAD
-  meetingName: string = '';
-=======
   raceNumbers: number[] = [];
   meetingName: string = '';
   loading: boolean = true;
 
   private meetingData = inject(MeetingDataService);
->>>>>>> 9aac1f3c2fd33f2f8c91f8ebd961a239a611b9b0
 
   constructor(private http: HttpClient, private cdr: ChangeDetectorRef) {}
 
@@ -83,39 +61,6 @@ export class Params implements OnInit {
     this.loadData();
   }
 
-<<<<<<< HEAD
-  loadData() {
-    // First, get selected races from init
-    this.http.get<any[]>(`${this.apiUrl}/params/selected-races`).subscribe({
-      next: (races) => {
-        if (races.length === 0) {
-          alert('No selected races found. Please select a meeting in the Init page first.');
-          return;
-        }
-
-        // Store meeting name from the first race
-        this.meetingName = races[0].meetingName;
-        this.cdr.detectChanges();
-        
-        // Then load existing params for this meeting
-        this.http.get<any[]>(`${this.apiUrl}/params?meetingName=${encodeURIComponent(races[0].meetingName)}`).subscribe({
-          next: (params) => {
-            this.buildDataSource(races, params);
-            this.cdr.detectChanges();
-          },
-          error: (error) => {
-            console.error('Error loading params:', error);
-            this.buildDataSource(races, []);
-            this.cdr.detectChanges();
-          }
-        });
-      },
-      error: (error) => {
-        console.error('Error loading selected races:', error);
-        alert('Error loading races. Please check if the backend is running.');
-      }
-    });
-=======
   async loadData() {
     this.loading = true;
     this.dataSource = [];
@@ -147,14 +92,11 @@ export class Params implements OnInit {
       this.loading = false;
       this.cdr.detectChanges();
     }
->>>>>>> 9aac1f3c2fd33f2f8c91f8ebd961a239a611b9b0
   }
 
   buildDataSource(races: any[], existingParams: any[]) {
     this.dataSource = [];
     this.raceGroups = {};
-<<<<<<< HEAD
-=======
     this.raceNumbers = [];
 
     // Build O(1) lookup map for existing params
@@ -162,7 +104,6 @@ export class Params implements OnInit {
     existingParams.forEach(p => paramMap.set(`${p.raceNum}-${p.horseNum}`, p));
 
     let rowIndex = 0;
->>>>>>> 9aac1f3c2fd33f2f8c91f8ebd961a239a611b9b0
 
     races.forEach(race => {
       const raceNum = race.raceNum;
@@ -171,24 +112,14 @@ export class Params implements OnInit {
       this.raceGroups[raceNum] = [];
 
       for (let horseNum = 1; horseNum <= numHorses; horseNum++) {
-<<<<<<< HEAD
-        // Check if param already exists
-        const existingParam = existingParams.find(
-          p => p.raceNum === raceNum && p.horseNum === horseNum
-        );
-=======
         // O(1) lookup instead of .find()
         const existingParam = paramMap.get(`${raceNum}-${horseNum}`);
->>>>>>> 9aac1f3c2fd33f2f8c91f8ebd961a239a611b9b0
 
         const row: ParamRow = {
           meetingName: races[0].meetingName,
           raceNum: raceNum,
           horseNum: horseNum,
-<<<<<<< HEAD
-=======
           rowIndex,
->>>>>>> 9aac1f3c2fd33f2f8c91f8ebd961a239a611b9b0
           horseName: existingParam?.horseName || '',
           special: existingParam?.special ? new Date(existingParam.special) : null,
           rule4: existingParam?.rule4 ? new Date(existingParam.rule4) : null,
@@ -197,14 +128,6 @@ export class Params implements OnInit {
 
         this.dataSource.push(row);
         this.raceGroups[raceNum].push(row);
-<<<<<<< HEAD
-      }
-    });
-  }
-
-  getRaceNumbers(): number[] {
-    return Object.keys(this.raceGroups).map(Number).sort((a, b) => a - b);
-=======
         rowIndex += 1;
       }
     });
@@ -214,7 +137,6 @@ export class Params implements OnInit {
 
   getRaceNumbers(): number[] {
     return this.raceNumbers;
->>>>>>> 9aac1f3c2fd33f2f8c91f8ebd961a239a611b9b0
   }
 
   getRaceData(raceNum: number): ParamRow[] {
@@ -236,10 +158,7 @@ export class Params implements OnInit {
 
     this.http.post(`${this.apiUrl}/params`, data).subscribe({
       next: (response) => {
-<<<<<<< HEAD
-=======
         this.meetingData.invalidateParams();
->>>>>>> 9aac1f3c2fd33f2f8c91f8ebd961a239a611b9b0
         alert('Parameters saved successfully!');
       },
       error: (error) => {
@@ -291,10 +210,7 @@ export class Params implements OnInit {
 
     this.http.post(`${this.apiUrl}/params`, data).subscribe({
       next: (response) => {
-<<<<<<< HEAD
-=======
         this.meetingData.invalidateParams();
->>>>>>> 9aac1f3c2fd33f2f8c91f8ebd961a239a611b9b0
         console.log('Auto-saved successfully');
       },
       error: (error) => {

@@ -1,8 +1,4 @@
-<<<<<<< HEAD
-import { Component, OnInit, ChangeDetectorRef, ViewChild } from '@angular/core';
-=======
 import { Component, OnInit, ChangeDetectorRef, ViewChild, ChangeDetectionStrategy, inject } from '@angular/core';
->>>>>>> 9aac1f3c2fd33f2f8c91f8ebd961a239a611b9b0
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
@@ -13,10 +9,7 @@ import { MatInputModule } from '@angular/material/input';
 import { MatRadioModule } from '@angular/material/radio';
 import { MatSidenav } from '@angular/material/sidenav';
 import { RecentClientsService } from '../services/recent-clients.service';
-<<<<<<< HEAD
-=======
 import { MeetingDataService } from '../services/meeting-data.service';
->>>>>>> 9aac1f3c2fd33f2f8c91f8ebd961a239a611b9b0
 import { environment } from '../../environments/environment';
 
 interface Horse {
@@ -51,10 +44,7 @@ interface Race {
   ],
   templateUrl: './chart.html',
   styleUrl: './chart.css',
-<<<<<<< HEAD
-=======
   changeDetection: ChangeDetectionStrategy.OnPush,
->>>>>>> 9aac1f3c2fd33f2f8c91f8ebd961a239a611b9b0
 })
 export class Chart implements OnInit {
   private apiUrl = `${environment.apiUrl}/api`;
@@ -90,11 +80,8 @@ export class Chart implements OnInit {
   private allParams: any[] = [];
   private allBets: any[] = [];
   
-<<<<<<< HEAD
-=======
   private meetingData = inject(MeetingDataService);
 
->>>>>>> 9aac1f3c2fd33f2f8c91f8ebd961a239a611b9b0
   constructor(
     private http: HttpClient, 
     private cdr: ChangeDetectorRef,
@@ -112,20 +99,6 @@ export class Chart implements OnInit {
     this.cdr.detectChanges();
   }
   
-<<<<<<< HEAD
-  loadLastBet() {
-    this.http.get<any>(`${this.apiUrl}/bets/last`).subscribe({
-      next: (bet) => {
-        if (bet) {
-          this.lastBet = bet;
-          this.cdr.detectChanges();
-        }
-      },
-      error: (error) => {
-        console.error('Error loading last bet:', error);
-      }
-    });
-=======
   async loadLastBet() {
     try {
       const bet = await this.meetingData.getLastBet();
@@ -136,7 +109,6 @@ export class Chart implements OnInit {
     } catch (error) {
       console.error('Error loading last bet:', error);
     }
->>>>>>> 9aac1f3c2fd33f2f8c91f8ebd961a239a611b9b0
   }
   
   selectClient(clientName: string) {
@@ -147,31 +119,13 @@ export class Chart implements OnInit {
   async loadData() {
     try {
       // Load selected races first
-<<<<<<< HEAD
-      const selectedRaces = await this.http.get<any[]>(`${this.apiUrl}/params/selected-races`).toPromise();
-=======
       const selectedRaces = await this.meetingData.getSelectedRaces();
->>>>>>> 9aac1f3c2fd33f2f8c91f8ebd961a239a611b9b0
       
       if (!selectedRaces || selectedRaces.length === 0) {
         this.loading = false;
         return;
       }
       
-<<<<<<< HEAD
-      const meetingName = selectedRaces[0].meetingName;
-      
-      this.meetingName = meetingName;
-      
-      // Load params and bets in parallel
-      const [params, bets] = await Promise.all([
-        this.http.get<any[]>(`${this.apiUrl}/params?meetingName=${encodeURIComponent(meetingName)}`).toPromise(),
-        this.http.get<any[]>(`${this.apiUrl}/bets?meetingName=${encodeURIComponent(meetingName)}`).toPromise()
-      ]);
-      
-      this.allParams = params || [];
-      this.allBets = bets || [];
-=======
       this.meetingName = this.meetingData.getMeetingName();
       
       // Load params and bets in parallel (shared cache)
@@ -182,7 +136,6 @@ export class Chart implements OnInit {
       
       this.allParams = params;
       this.allBets = bets;
->>>>>>> 9aac1f3c2fd33f2f8c91f8ebd961a239a611b9b0
       
       // Group params by race and track special dates
       const raceMap = new Map<number, Horse[]>();
@@ -439,15 +392,9 @@ export class Chart implements OnInit {
       next: async (response) => {
         //         alert('Bet saved successfully!');
         // Reload recent clients from database
-<<<<<<< HEAD
-        await this.loadRecentClients();
-        // Reload last bet from database
-        this.loadLastBet();
-=======
         this.meetingData.invalidateBets();
         await this.loadRecentClients();
         await this.loadLastBet();
->>>>>>> 9aac1f3c2fd33f2f8c91f8ebd961a239a611b9b0
         
         // Reload data
         await this.loadData();

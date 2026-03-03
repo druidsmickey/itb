@@ -1,8 +1,4 @@
-<<<<<<< HEAD
-import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
-=======
 import { Component, OnInit, ChangeDetectorRef, ChangeDetectionStrategy } from '@angular/core';
->>>>>>> 9aac1f3c2fd33f2f8c91f8ebd961a239a611b9b0
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
@@ -22,10 +18,7 @@ interface ClientReport {
   imports: [CommonModule, FormsModule],
   templateUrl: './merge.html',
   styleUrl: './merge.css',
-<<<<<<< HEAD
-=======
   changeDetection: ChangeDetectionStrategy.OnPush,
->>>>>>> 9aac1f3c2fd33f2f8c91f8ebd961a239a611b9b0
 })
 export class Merge implements OnInit {
   private apiUrl = `${environment.apiUrl}/api`;
