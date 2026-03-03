@@ -1,4 +1,8 @@
+<<<<<<< HEAD
 import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
+=======
+import { Component, OnInit, ChangeDetectorRef, ChangeDetectionStrategy, inject } from '@angular/core';
+>>>>>>> 9aac1f3c2fd33f2f8c91f8ebd961a239a611b9b0
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
@@ -10,6 +14,10 @@ import { MatCardModule } from '@angular/material/card';
 import { MatRadioModule } from '@angular/material/radio';
 import { MatChipsModule } from '@angular/material/chips';
 import { RecentClientsService } from '../services/recent-clients.service';
+<<<<<<< HEAD
+=======
+import { MeetingDataService } from '../services/meeting-data.service';
+>>>>>>> 9aac1f3c2fd33f2f8c91f8ebd961a239a611b9b0
 import { environment } from '../../environments/environment';
 
 interface Race {
@@ -42,6 +50,10 @@ interface Horse {
   ],
   templateUrl: './dataentry.html',
   styleUrl: './dataentry.css',
+<<<<<<< HEAD
+=======
+  changeDetection: ChangeDetectionStrategy.OnPush,
+>>>>>>> 9aac1f3c2fd33f2f8c91f8ebd961a239a611b9b0
 })
 export class Dataentry implements OnInit {
   private apiUrl = `${environment.apiUrl}/api`;
@@ -83,6 +95,11 @@ export class Dataentry implements OnInit {
   f500: number | null = null;
   payout: number | null = null;
 
+<<<<<<< HEAD
+=======
+  private meetingData = inject(MeetingDataService);
+
+>>>>>>> 9aac1f3c2fd33f2f8c91f8ebd961a239a611b9b0
   constructor(
     private http: HttpClient, 
     private cdr: ChangeDetectorRef,
@@ -100,6 +117,7 @@ export class Dataentry implements OnInit {
     this.cdr.detectChanges();
   }
   
+<<<<<<< HEAD
   loadLastBet() {
     this.http.get<any>(`${this.apiUrl}/bets/last`).subscribe({
       next: (bet) => {
@@ -112,6 +130,18 @@ export class Dataentry implements OnInit {
         console.error('Error loading last bet:', error);
       }
     });
+=======
+  async loadLastBet() {
+    try {
+      const bet = await this.meetingData.getLastBet();
+      if (bet) {
+        this.lastBet = bet;
+        this.cdr.detectChanges();
+      }
+    } catch (error) {
+      console.error('Error loading last bet:', error);
+    }
+>>>>>>> 9aac1f3c2fd33f2f8c91f8ebd961a239a611b9b0
   }
   
   selectClient(clientName: string) {
@@ -119,6 +149,7 @@ export class Dataentry implements OnInit {
     this.cdr.detectChanges();
   }
 
+<<<<<<< HEAD
   loadSelectedRaces() {
     this.http.get<any[]>(`${this.apiUrl}/params/selected-races`).subscribe({
       next: (races) => {
@@ -152,6 +183,32 @@ export class Dataentry implements OnInit {
         console.error('Error loading params:', error);
       }
     });
+=======
+  async loadSelectedRaces() {
+    try {
+      const races = await this.meetingData.getSelectedRaces();
+      if (races.length === 0) {
+        alert('No selected races found. Please select a meeting in the Init page first.');
+        return;
+      }
+      this.races = races;
+      this.meetingName = this.meetingData.getMeetingName();
+      await this.loadAllParams();
+      this.cdr.detectChanges();
+    } catch (error) {
+      console.error('Error loading races:', error);
+      alert('Error loading races. Please check if the backend is running.');
+    }
+  }
+
+  async loadAllParams() {
+    try {
+      this.allParams = await this.meetingData.getParams();
+      this.cdr.detectChanges();
+    } catch (error) {
+      console.error('Error loading params:', error);
+    }
+>>>>>>> 9aac1f3c2fd33f2f8c91f8ebd961a239a611b9b0
   }
 
   onRaceChange() {
@@ -249,11 +306,17 @@ export class Dataentry implements OnInit {
     
     this.http.post(`${this.apiUrl}/bets`, betData).subscribe({
       next: async (response) => {
+<<<<<<< HEAD
         //         alert('Bet saved successfully!');
         // Reload recent clients from database
         await this.loadRecentClients();
         // Reload last bet from database
         this.loadLastBet();
+=======
+        this.meetingData.invalidateBets();
+        await this.loadRecentClients();
+        await this.loadLastBet();
+>>>>>>> 9aac1f3c2fd33f2f8c91f8ebd961a239a611b9b0
         setTimeout(() => this.resetForm(), 0);
        },
       error: (error) => {

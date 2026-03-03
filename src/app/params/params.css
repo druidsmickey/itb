@@ -23,6 +23,22 @@ h2 {
   color: #666;
 }
 
+<<<<<<< HEAD
+=======
+.loading-state {
+  padding: 28px;
+}
+
+.loading-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  min-height: 120px;
+}
+
+>>>>>>> 9aac1f3c2fd33f2f8c91f8ebd961a239a611b9b0
 .race-section {
   margin-bottom: 20px;
 }

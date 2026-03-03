@@ -1,8 +1,16 @@
+<<<<<<< HEAD
 import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
+=======
+import { Component, OnInit, ChangeDetectorRef, ChangeDetectionStrategy, inject } from '@angular/core';
+>>>>>>> 9aac1f3c2fd33f2f8c91f8ebd961a239a611b9b0
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
 import { environment } from '../../environments/environment';
+<<<<<<< HEAD
+=======
+import { MeetingDataService } from '../services/meeting-data.service';
+>>>>>>> 9aac1f3c2fd33f2f8c91f8ebd961a239a611b9b0
 
 interface ClientReport {
   clientName: string;
@@ -18,6 +26,10 @@ interface ClientReport {
   imports: [CommonModule, FormsModule],
   templateUrl: './reports.html',
   styleUrl: './reports.css',
+<<<<<<< HEAD
+=======
+  changeDetection: ChangeDetectionStrategy.OnPush,
+>>>>>>> 9aac1f3c2fd33f2f8c91f8ebd961a239a611b9b0
 })
 export class Reports implements OnInit {
   private apiUrl = `${environment.apiUrl}/api`;
@@ -35,6 +47,16 @@ export class Reports implements OnInit {
   // Cache for special and rule4 dates
   private specialDates = new Map<string, Date>();
   private rule4Info = new Map<number, Array<{ date: Date; deduct: number }>>();
+<<<<<<< HEAD
+=======
+  // Pre-built lookup maps for O(1) access
+  private winnerSet = new Set<string>(); // "raceNum-horseNum" keys
+  private winnerCountByRace = new Map<number, number>();
+  private rule4HorseSet = new Set<string>(); // "raceNum-horseNum" keys with rule4
+  private specialHorseSet = new Set<string>(); // keys of horses with special dates
+
+  private meetingData = inject(MeetingDataService);
+>>>>>>> 9aac1f3c2fd33f2f8c91f8ebd961a239a611b9b0
 
   constructor(private http: HttpClient, private cdr: ChangeDetectorRef) {}
 
@@ -44,14 +66,19 @@ export class Reports implements OnInit {
 
   async loadData() {
     try {
+<<<<<<< HEAD
       // Load params first to get meeting name
       const selectedRaces = await this.http.get<any[]>(`${this.apiUrl}/params/selected-races`).toPromise();
+=======
+      const selectedRaces = await this.meetingData.getSelectedRaces();
+>>>>>>> 9aac1f3c2fd33f2f8c91f8ebd961a239a611b9b0
       
       if (!selectedRaces || selectedRaces.length === 0) {
         alert('No selected races found. Please select a meeting in the Init page first.');
         return;
       }
       
+<<<<<<< HEAD
       this.meetingName = selectedRaces[0].meetingName;
       
       // Load params and bets
@@ -62,6 +89,18 @@ export class Reports implements OnInit {
       
       this.allParams = params || [];
       this.allBets = bets || [];
+=======
+      this.meetingName = this.meetingData.getMeetingName();
+      
+      // Load params and bets from shared cache
+      const [params, bets] = await Promise.all([
+        this.meetingData.getParams(),
+        this.meetingData.getBets()
+      ]);
+      
+      this.allParams = params;
+      this.allBets = bets;
+>>>>>>> 9aac1f3c2fd33f2f8c91f8ebd961a239a611b9b0
       
       // Build special dates and rule4 info maps
       this.buildDateMaps();
@@ -79,6 +118,13 @@ export class Reports implements OnInit {
   buildDateMaps() {
     this.specialDates.clear();
     this.rule4Info.clear();
+<<<<<<< HEAD
+=======
+    this.winnerSet.clear();
+    this.winnerCountByRace.clear();
+    this.rule4HorseSet.clear();
+    this.specialHorseSet.clear();
+>>>>>>> 9aac1f3c2fd33f2f8c91f8ebd961a239a611b9b0
     
     // Build horse names array
     const maxRace = Math.max(...this.allParams.map(p => p.raceNum), 0);
@@ -99,6 +145,7 @@ export class Reports implements OnInit {
       
       if (param.special) {
         this.specialDates.set(key, new Date(param.special));
+<<<<<<< HEAD
       }
       
       if (param.rule4 && param.rule4deduct > 0) {
@@ -109,6 +156,27 @@ export class Reports implements OnInit {
           date: new Date(param.rule4),
           deduct: param.rule4deduct
         });
+=======
+        this.specialHorseSet.add(key);
+      }
+      
+      if (param.winner) {
+        this.winnerSet.add(key);
+        this.winnerCountByRace.set(param.raceNum, (this.winnerCountByRace.get(param.raceNum) || 0) + 1);
+      }
+      
+      if (param.rule4) {
+        this.rule4HorseSet.add(key);
+        if (param.rule4deduct > 0) {
+          if (!this.rule4Info.has(param.raceNum)) {
+            this.rule4Info.set(param.raceNum, []);
+          }
+          this.rule4Info.get(param.raceNum)!.push({
+            date: new Date(param.rule4),
+            deduct: param.rule4deduct
+          });
+        }
+>>>>>>> 9aac1f3c2fd33f2f8c91f8ebd961a239a611b9b0
       }
     });
   }
@@ -130,11 +198,15 @@ export class Reports implements OnInit {
       }
       
       // Check if horse has rule4
+<<<<<<< HEAD
       const hasRule4 = this.allParams.some(p => 
         p.raceNum === bet.raceNum && 
         p.horseNum === bet.horseNum && 
         p.rule4
       );
+=======
+      const hasRule4 = this.rule4HorseSet.has(key);
+>>>>>>> 9aac1f3c2fd33f2f8c91f8ebd961a239a611b9b0
       
       // If horse withdrawn due to rule4 with betTime before rule4 date, ignore
       if (hasRule4) {
@@ -180,7 +252,11 @@ export class Reports implements OnInit {
         });
         
         // Adjust for dead heat
+<<<<<<< HEAD
         const winnerCount = this.allParams.filter(p => p.raceNum === bet.raceNum && p.winner).length;
+=======
+        const winnerCount = this.winnerCountByRace.get(bet.raceNum) || 0;
+>>>>>>> 9aac1f3c2fd33f2f8c91f8ebd961a239a611b9b0
         if (winnerCount > 1) {
           payout = payout / winnerCount;
         }
@@ -249,7 +325,11 @@ export class Reports implements OnInit {
         const rule4s = this.rule4Info.get(bet.raceNum) || [];
         
         // Adjust for dead heat
+<<<<<<< HEAD
         const winnerCount = this.allParams.filter(p => p.raceNum === bet.raceNum && p.winner).length;
+=======
+        const winnerCount = this.winnerCountByRace.get(bet.raceNum) || 0;
+>>>>>>> 9aac1f3c2fd33f2f8c91f8ebd961a239a611b9b0
         if (winnerCount > 1) {
           payout = payout / winnerCount;
         }
@@ -330,13 +410,20 @@ export class Reports implements OnInit {
 
   isSpecial(bet: any): boolean {
     // Check if any horse in the race has a special flag set
+<<<<<<< HEAD
     return this.allParams.some(p => 
       p.raceNum === bet.raceNum && p.special != null
     );
+=======
+    // Use specialHorseSet for O(1) lookup per horse
+    const raceParams = this.allParams.filter(p => p.raceNum === bet.raceNum);
+    return raceParams.some(p => this.specialHorseSet.has(`${p.raceNum}-${p.horseNum}`));
+>>>>>>> 9aac1f3c2fd33f2f8c91f8ebd961a239a611b9b0
   }
 
   isRule4(bet: any): boolean {
     // Check if the specific horse has rule4 flag set
+<<<<<<< HEAD
     return this.allParams.some(p => 
       p.raceNum === bet.raceNum && 
       p.horseNum === bet.horseNum && 
@@ -350,6 +437,13 @@ export class Reports implements OnInit {
       p.horseNum === bet.horseNum && 
       p.winner
     );
+=======
+    return this.rule4HorseSet.has(`${bet.raceNum}-${bet.horseNum}`);
+  }
+
+  isWinner(bet: any): boolean {
+    return this.winnerSet.has(`${bet.raceNum}-${bet.horseNum}`);
+>>>>>>> 9aac1f3c2fd33f2f8c91f8ebd961a239a611b9b0
   }
 
   getWinnerStatus(bet: any): string {

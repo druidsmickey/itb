@@ -1,15 +1,28 @@
+<<<<<<< HEAD
 import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
+=======
+import { Component, OnInit, ChangeDetectorRef, ChangeDetectionStrategy, inject } from '@angular/core';
+>>>>>>> 9aac1f3c2fd33f2f8c91f8ebd961a239a611b9b0
 import { CommonModule } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
 import { FormsModule } from '@angular/forms';
 import { environment } from '../../environments/environment';
+<<<<<<< HEAD
+=======
+import { MeetingDataService } from '../services/meeting-data.service';
+>>>>>>> 9aac1f3c2fd33f2f8c91f8ebd961a239a611b9b0
 
 @Component({
   selector: 'app-listdata',
   standalone: true,
   imports: [CommonModule, FormsModule],
   templateUrl: './list.html',
+<<<<<<< HEAD
   styleUrl: './list.css'
+=======
+  styleUrl: './list.css',
+  changeDetection: ChangeDetectionStrategy.OnPush,
+>>>>>>> 9aac1f3c2fd33f2f8c91f8ebd961a239a611b9b0
 })
 
 export class ListdataComponent implements OnInit {
@@ -46,6 +59,11 @@ export class ListdataComponent implements OnInit {
     });
   }
 
+<<<<<<< HEAD
+=======
+  private meetingData = inject(MeetingDataService);
+
+>>>>>>> 9aac1f3c2fd33f2f8c91f8ebd961a239a611b9b0
   constructor(private http: HttpClient, private cdr: ChangeDetectorRef) {}
 
   ngOnInit() {
@@ -54,14 +72,19 @@ export class ListdataComponent implements OnInit {
 
   async loadData() {
     try {
+<<<<<<< HEAD
       // Load selected races first
       const selectedRaces = await this.http.get<any[]>(`${this.apiUrl}/params/selected-races`).toPromise();
+=======
+      const selectedRaces = await this.meetingData.getSelectedRaces();
+>>>>>>> 9aac1f3c2fd33f2f8c91f8ebd961a239a611b9b0
       
       if (!selectedRaces || selectedRaces.length === 0) {
         alert('No selected races found. Please select a meeting in the Init page first.');
         return;
       }
       
+<<<<<<< HEAD
       // Set meetingName first
       this.meetingName = selectedRaces[0].meetingName;
       
@@ -73,11 +96,30 @@ export class ListdataComponent implements OnInit {
       setTimeout(() => {
         this.cdr.detectChanges();
       }, 0);
+=======
+      this.meetingName = this.meetingData.getMeetingName();
+      
+      // Load params and bets from shared cache
+      const [params, bets] = await Promise.all([
+        this.meetingData.getParams(),
+        this.meetingData.getBets()
+      ]);
+      
+      this.allParams = params;
+      this.items = bets.sort((a: any, b: any) => {
+        const dateA = new Date(a.betTime || a.createdAt).getTime();
+        const dateB = new Date(b.betTime || b.createdAt).getTime();
+        return dateB - dateA;
+      });
+      
+      this.cdr.detectChanges();
+>>>>>>> 9aac1f3c2fd33f2f8c91f8ebd961a239a611b9b0
     } catch (error) {
       console.error('Error loading data:', error);
     }
   }
 
+<<<<<<< HEAD
   loadBets() {
     this.http.get<any[]>(`${this.apiUrl}/bets?meetingName=${encodeURIComponent(this.meetingName)}`).subscribe({
       next: (data: any[]) => {
@@ -106,6 +148,8 @@ export class ListdataComponent implements OnInit {
     });
   }
 
+=======
+>>>>>>> 9aac1f3c2fd33f2f8c91f8ebd961a239a611b9b0
   cancelBet(item: any) {
     const newCancelledValue = !item.cancelled;
     const action = newCancelledValue ? 'cancel' : 'reactivate';
@@ -116,7 +160,11 @@ export class ListdataComponent implements OnInit {
 
     this.http.patch(`${this.apiUrl}/bets/${item._id}/cancel`, { cancelled: newCancelledValue }).subscribe({
       next: () => {
+<<<<<<< HEAD
         console.log(`Bet ${action}ed successfully`);
+=======
+        this.meetingData.invalidateBets();
+>>>>>>> 9aac1f3c2fd33f2f8c91f8ebd961a239a611b9b0
         item.cancelled = newCancelledValue; // Update local state
         this.cdr.detectChanges();
       },

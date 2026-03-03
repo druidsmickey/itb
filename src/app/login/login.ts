@@ -1,4 +1,8 @@
+<<<<<<< HEAD
 import { Component, ChangeDetectorRef } from '@angular/core';
+=======
+import { Component, ChangeDetectorRef, ChangeDetectionStrategy } from '@angular/core';
+>>>>>>> 9aac1f3c2fd33f2f8c91f8ebd961a239a611b9b0
 import { Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
@@ -9,6 +13,10 @@ import { AuthService } from '../services/auth.service';
   imports: [CommonModule, FormsModule],
   templateUrl: './login.html',
   styleUrl: './login.css',
+<<<<<<< HEAD
+=======
+  changeDetection: ChangeDetectionStrategy.OnPush,
+>>>>>>> 9aac1f3c2fd33f2f8c91f8ebd961a239a611b9b0
 })
 export class Login {
   username = '';

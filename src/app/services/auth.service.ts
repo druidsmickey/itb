@@ -61,6 +61,7 @@ export class AuthService {
       }
     };
 
+<<<<<<< HEAD
     window.addEventListener('focus', throttledUpdate);
     window.addEventListener('blur', throttledUpdate);
 
@@ -68,6 +69,15 @@ export class AuthService {
     document.addEventListener('keypress', throttledUpdate);
     document.addEventListener('click', throttledUpdate);
     document.addEventListener('scroll', throttledUpdate);
+=======
+    // Use passive listeners for better scroll/mouse performance
+    window.addEventListener('focus', throttledUpdate);
+
+    document.addEventListener('mousemove', throttledUpdate, { passive: true });
+    document.addEventListener('keypress', throttledUpdate, { passive: true });
+    document.addEventListener('click', throttledUpdate, { passive: true });
+    document.addEventListener('scroll', throttledUpdate, { passive: true });
+>>>>>>> 9aac1f3c2fd33f2f8c91f8ebd961a239a611b9b0
 
     setInterval(() => this.checkActivity(), 30000); // Check every 30 seconds
   }

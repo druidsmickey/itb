@@ -2,6 +2,10 @@ require('dotenv').config({ path: __dirname + '/.env' });
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
+<<<<<<< HEAD
+=======
+const compression = require('compression');
+>>>>>>> 9aac1f3c2fd33f2f8c91f8ebd961a239a611b9b0
 
 const { router: authRouter, authenticateToken } = require('./routes/auth');
 
@@ -9,12 +13,27 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 
 // Middleware
+<<<<<<< HEAD
+=======
+app.use(compression()); // Gzip compress all responses
+>>>>>>> 9aac1f3c2fd33f2f8c91f8ebd961a239a611b9b0
 app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+<<<<<<< HEAD
 // MongoDB Connection
 mongoose.connect(process.env.MONGODB_URI)
+=======
+// MongoDB Connection with optimized settings
+mongoose.connect(process.env.MONGODB_URI, {
+  maxPoolSize: 10,
+  minPoolSize: 2,
+  socketTimeoutMS: 45000,
+  serverSelectionTimeoutMS: 5000,
+  heartbeatFrequencyMS: 10000,
+})
+>>>>>>> 9aac1f3c2fd33f2f8c91f8ebd961a239a611b9b0
 .then(() => {
   console.log('✅ Successfully connected to MongoDB');
 })
@@ -23,24 +42,54 @@ mongoose.connect(process.env.MONGODB_URI)
   process.exit(1);
 });
 
+<<<<<<< HEAD
 // MongoDB connection event listeners
 mongoose.connection.on('connected', () => {
   console.log('Mongoose connected to MongoDB');
 });
 
+=======
+>>>>>>> 9aac1f3c2fd33f2f8c91f8ebd961a239a611b9b0
 mongoose.connection.on('error', (err) => {
   console.error('Mongoose connection error:', err);
 });
 
+<<<<<<< HEAD
 mongoose.connection.on('disconnected', () => {
   console.log('Mongoose disconnected from MongoDB');
 });
 
+=======
+>>>>>>> 9aac1f3c2fd33f2f8c91f8ebd961a239a611b9b0
 // Import models
 const Init = require('./models/init');
 const Params = require('./models/params');
 const Bets = require('./models/bets');
 
+<<<<<<< HEAD
+=======
+// ── In-memory cache with TTL ────────────────────────────────────────
+const cache = new Map(); // key → { data, expiry }
+const CACHE_TTL = 30_000; // 30 seconds
+
+function cacheGet(key) {
+  const entry = cache.get(key);
+  if (!entry) return null;
+  if (Date.now() > entry.expiry) { cache.delete(key); return null; }
+  return entry.data;
+}
+
+function cacheSet(key, data, ttl = CACHE_TTL) {
+  cache.set(key, { data, expiry: Date.now() + ttl });
+}
+
+function cacheInvalidate(...prefixes) {
+  for (const [key] of cache) {
+    if (prefixes.some(p => key.startsWith(p))) cache.delete(key);
+  }
+}
+
+>>>>>>> 9aac1f3c2fd33f2f8c91f8ebd961a239a611b9b0
 // Basic route
 app.use('/auth', authRouter);
 
@@ -67,6 +116,12 @@ app.use('/api', authenticateToken);
 // Get all meeting names
 app.get('/api/meetings', async (req, res) => {
   try {
+<<<<<<< HEAD
+=======
+    const cached = cacheGet('meetings');
+    if (cached) return res.json(cached);
+
+>>>>>>> 9aac1f3c2fd33f2f8c91f8ebd961a239a611b9b0
     const meetings = await Init.aggregate([
       {
         $group: {
@@ -84,7 +139,13 @@ app.get('/api/meetings', async (req, res) => {
         }
       }
     ]);
+<<<<<<< HEAD
     res.json(meetings.map(m => m.meetingName));
+=======
+    const result = meetings.map(m => m.meetingName);
+    cacheSet('meetings', result);
+    res.json(result);
+>>>>>>> 9aac1f3c2fd33f2f8c91f8ebd961a239a611b9b0
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
@@ -93,7 +154,19 @@ app.get('/api/meetings', async (req, res) => {
 // Get races for a specific meeting
 app.get('/api/meetings/:meetingName/races', async (req, res) => {
   try {
+<<<<<<< HEAD
     const races = await Init.find({ meetingName: req.params.meetingName }).sort({ raceNum: 1 });
+=======
+    const key = `races:${req.params.meetingName}`;
+    const cached = cacheGet(key);
+    if (cached) return res.json(cached);
+
+    const races = await Init.find({ meetingName: req.params.meetingName })
+      .sort({ raceNum: 1 })
+      .select('-__v')
+      .lean();
+    cacheSet(key, races);
+>>>>>>> 9aac1f3c2fd33f2f8c91f8ebd961a239a611b9b0
     res.json(races);
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -103,9 +176,12 @@ app.get('/api/meetings/:meetingName/races', async (req, res) => {
 // Save races for a meeting (create or update)
 app.post('/api/meetings/races', async (req, res) => {
   try {
+<<<<<<< HEAD
     console.log('Received POST request to /api/meetings/races');
     console.log('Request body:', JSON.stringify(req.body, null, 2));
     
+=======
+>>>>>>> 9aac1f3c2fd33f2f8c91f8ebd961a239a611b9b0
     const { meetingName, races, selected } = req.body;
     
     if (!meetingName) {
@@ -118,18 +194,27 @@ app.post('/api/meetings/races', async (req, res) => {
     
     // If selected is true, set all other meetings to false
     if (selected) {
+<<<<<<< HEAD
       console.log('Setting all other meetings selected to false');
+=======
+>>>>>>> 9aac1f3c2fd33f2f8c91f8ebd961a239a611b9b0
       await Init.updateMany(
         { meetingName: { $ne: meetingName } },
         { $set: { selected: false } }
       );
     }
     
+<<<<<<< HEAD
     console.log(`Deleting existing races for meeting: ${meetingName}`);
     // Delete existing races for this meeting
     await Init.deleteMany({ meetingName });
     
     console.log(`Inserting ${races.length} races`);
+=======
+    // Delete existing races for this meeting
+    await Init.deleteMany({ meetingName });
+    
+>>>>>>> 9aac1f3c2fd33f2f8c91f8ebd961a239a611b9b0
     // Insert new races
     const savedRaces = await Init.insertMany(
       races.map(race => ({
@@ -141,11 +226,19 @@ app.post('/api/meetings/races', async (req, res) => {
       }))
     );
     
+<<<<<<< HEAD
     console.log('Races saved successfully');
     res.json({ success: true, races: savedRaces });
   } catch (error) {
     console.error('Error in POST /api/meetings/races:', error);
     console.error('Error stack:', error.stack);
+=======
+    // Invalidate all init/race caches
+    cacheInvalidate('meetings', 'races:', 'selected-races');
+    res.json({ success: true, races: savedRaces });
+  } catch (error) {
+    console.error('Error in POST /api/meetings/races:', error);
+>>>>>>> 9aac1f3c2fd33f2f8c91f8ebd961a239a611b9b0
     res.status(500).json({ error: error.message });
   }
 });
@@ -155,7 +248,18 @@ app.post('/api/meetings/races', async (req, res) => {
 // Get all races where selected is true
 app.get('/api/params/selected-races', async (req, res) => {
   try {
+<<<<<<< HEAD
     const selectedRaces = await Init.find({ selected: true }).sort({ raceNum: 1 });
+=======
+    const cached = cacheGet('selected-races');
+    if (cached) return res.json(cached);
+
+    const selectedRaces = await Init.find({ selected: true })
+      .sort({ raceNum: 1 })
+      .select('raceNum numHorse raceName meetingName selected')
+      .lean();
+    cacheSet('selected-races', selectedRaces);
+>>>>>>> 9aac1f3c2fd33f2f8c91f8ebd961a239a611b9b0
     res.json(selectedRaces);
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -166,8 +270,21 @@ app.get('/api/params/selected-races', async (req, res) => {
 app.get('/api/params', async (req, res) => {
   try {
     const { meetingName } = req.query;
+<<<<<<< HEAD
     const query = meetingName ? { meetingName } : {};
     const params = await Params.find(query).sort({ raceNum: 1, horseNum: 1 });
+=======
+    const key = `params:${meetingName || 'all'}`;
+    const cached = cacheGet(key);
+    if (cached) return res.json(cached);
+
+    const query = meetingName ? { meetingName } : {};
+    const params = await Params.find(query)
+      .sort({ raceNum: 1, horseNum: 1 })
+      .select('-__v')
+      .lean();
+    cacheSet(key, params);
+>>>>>>> 9aac1f3c2fd33f2f8c91f8ebd961a239a611b9b0
     res.json(params);
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -194,6 +311,10 @@ app.post('/api/params', async (req, res) => {
     // Insert new params
     const savedParams = await Params.insertMany(params);
     
+<<<<<<< HEAD
+=======
+    cacheInvalidate('params:');
+>>>>>>> 9aac1f3c2fd33f2f8c91f8ebd961a239a611b9b0
     res.json({ success: true, params: savedParams });
   } catch (error) {
     console.error('Error saving params:', error);
@@ -206,6 +327,12 @@ app.post('/api/params', async (req, res) => {
 // Get recent client names (last 6 unique)
 app.get('/api/bets/recent-clients', async (req, res) => {
   try {
+<<<<<<< HEAD
+=======
+    const cached = cacheGet('recent-clients');
+    if (cached) return res.json(cached);
+
+>>>>>>> 9aac1f3c2fd33f2f8c91f8ebd961a239a611b9b0
     const recentClients = await Bets.aggregate([
       { $match: { clientName: { $exists: true, $ne: '' } } },
       { $sort: { betTime: -1 } },
@@ -217,7 +344,13 @@ app.get('/api/bets/recent-clients', async (req, res) => {
       { $limit: 6 },
       { $project: { _id: 0, clientName: '$_id' } }
     ]);
+<<<<<<< HEAD
     res.json(recentClients.map(item => item.clientName));
+=======
+    const result = recentClients.map(item => item.clientName);
+    cacheSet('recent-clients', result);
+    res.json(result);
+>>>>>>> 9aac1f3c2fd33f2f8c91f8ebd961a239a611b9b0
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
@@ -226,8 +359,21 @@ app.get('/api/bets/recent-clients', async (req, res) => {
 // Get last bet
 app.get('/api/bets/last', async (req, res) => {
   try {
+<<<<<<< HEAD
     const lastBet = await Bets.findOne().sort({ betTime: -1 });
     res.json(lastBet || null);
+=======
+    const cached = cacheGet('bets:last');
+    if (cached !== null) return res.json(cached);
+
+    const lastBet = await Bets.findOne()
+      .sort({ betTime: -1 })
+      .select('-__v')
+      .lean();
+    const result = lastBet || null;
+    cacheSet('bets:last', result);
+    res.json(result);
+>>>>>>> 9aac1f3c2fd33f2f8c91f8ebd961a239a611b9b0
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
@@ -237,8 +383,21 @@ app.get('/api/bets/last', async (req, res) => {
 app.get('/api/bets', async (req, res) => {
   try {
     const { meetingName } = req.query;
+<<<<<<< HEAD
     const query = meetingName ? { meetingName } : {};
     const bets = await Bets.find(query).sort({ betTime: -1 });
+=======
+    const key = `bets:list:${meetingName || 'all'}`;
+    const cached = cacheGet(key);
+    if (cached) return res.json(cached);
+
+    const query = meetingName ? { meetingName } : {};
+    const bets = await Bets.find(query)
+      .sort({ betTime: -1 })
+      .select('-__v')
+      .lean();
+    cacheSet(key, bets);
+>>>>>>> 9aac1f3c2fd33f2f8c91f8ebd961a239a611b9b0
     res.json(bets);
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -250,6 +409,10 @@ app.post('/api/bets', async (req, res) => {
   try {
     const bet = new Bets(req.body);
     const savedBet = await bet.save();
+<<<<<<< HEAD
+=======
+    cacheInvalidate('bets:', 'recent-clients');
+>>>>>>> 9aac1f3c2fd33f2f8c91f8ebd961a239a611b9b0
     res.json({ success: true, bet: savedBet });
   } catch (error) {
     console.error('Error saving bet:', error);
@@ -266,6 +429,10 @@ app.patch('/api/bets/:id/cancel', async (req, res) => {
       { cancelled },
       { new: true }
     );
+<<<<<<< HEAD
+=======
+    cacheInvalidate('bets:');
+>>>>>>> 9aac1f3c2fd33f2f8c91f8ebd961a239a611b9b0
     res.json({ success: true, bet });
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -280,6 +447,10 @@ app.patch('/api/params/:id', async (req, res) => {
       req.body,
       { new: true }
     );
+<<<<<<< HEAD
+=======
+    cacheInvalidate('params:');
+>>>>>>> 9aac1f3c2fd33f2f8c91f8ebd961a239a611b9b0
     res.json({ success: true, param });
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -290,6 +461,10 @@ app.patch('/api/params/:id', async (req, res) => {
 app.delete('/api/bets/:id', async (req, res) => {
   try {
     await Bets.findByIdAndDelete(req.params.id);
+<<<<<<< HEAD
+=======
+    cacheInvalidate('bets:', 'recent-clients');
+>>>>>>> 9aac1f3c2fd33f2f8c91f8ebd961a239a611b9b0
     res.json({ success: true });
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -308,6 +483,11 @@ app.delete('/api/meetings/:meetingName', async (req, res) => {
       Bets.deleteMany({ meetingName })
     ]);
     
+<<<<<<< HEAD
+=======
+    // Invalidate all caches when a meeting is deleted
+    cache.clear();
+>>>>>>> 9aac1f3c2fd33f2f8c91f8ebd961a239a611b9b0
     res.json({ 
       success: true, 
       deleted: {

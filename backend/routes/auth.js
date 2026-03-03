@@ -67,8 +67,11 @@ router.post("/change-password", authenticateToken, async (req, res) => {
   try {
     const { currentPassword, newPassword } = req.body;
 
+<<<<<<< HEAD
     console.log('Change password request for user:', req.user.userId);
 
+=======
+>>>>>>> 9aac1f3c2fd33f2f8c91f8ebd961a239a611b9b0
     if (!currentPassword || !newPassword) {
       return res
         .status(400)
@@ -82,14 +85,20 @@ router.post("/change-password", authenticateToken, async (req, res) => {
     }
 
     const user = await User.findById(req.user.userId);
+<<<<<<< HEAD
     console.log('User found:', user ? 'Yes' : 'No');
+=======
+>>>>>>> 9aac1f3c2fd33f2f8c91f8ebd961a239a611b9b0
     
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
 
     const isValidCurrentPassword = await user.comparePassword(currentPassword);
+<<<<<<< HEAD
     console.log('Password valid:', isValidCurrentPassword);
+=======
+>>>>>>> 9aac1f3c2fd33f2f8c91f8ebd961a239a611b9b0
     
     if (!isValidCurrentPassword) {
       return res.status(401).json({ message: "Current password is incorrect" });
@@ -98,8 +107,11 @@ router.post("/change-password", authenticateToken, async (req, res) => {
     user.password = newPassword;
     await user.save();
 
+<<<<<<< HEAD
     console.log('Password changed successfully for user:', req.user.userId);
 
+=======
+>>>>>>> 9aac1f3c2fd33f2f8c91f8ebd961a239a611b9b0
     res.json({
       message: "Password changed successfully",
     });

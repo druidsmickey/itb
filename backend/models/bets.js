@@ -58,4 +58,13 @@ const betsSchema = new mongoose.Schema({
   timestamps: true
 });
 
+<<<<<<< HEAD
+=======
+// Indexes for query performance
+betsSchema.index({ meetingName: 1, raceNum: 1, horseNum: 1 });
+betsSchema.index({ meetingName: 1, betTime: -1 });
+betsSchema.index({ betTime: -1 });
+betsSchema.index({ clientName: 1, betTime: -1 });
+
+>>>>>>> 9aac1f3c2fd33f2f8c91f8ebd961a239a611b9b0
 module.exports = mongoose.model('Bets', betsSchema);

@@ -1,6 +1,7 @@
 <div class="params-container">
   <h2>{{ meetingName || 'Race Parameters' }}</h2>
 
+<<<<<<< HEAD
   <mat-card *ngIf="dataSource.length === 0" class="empty-state">
     <p>No selected races found. Please select a meeting in the Init page first.</p>
   </mat-card>
@@ -10,6 +11,25 @@
       <h3>Race {{ raceNum }}</h3>
       
       <table mat-table [dataSource]="getRaceData(raceNum)" class="params-table">
+=======
+  <mat-card *ngIf="loading" class="loading-state">
+    <div class="loading-wrapper">
+      <mat-spinner diameter="42"></mat-spinner>
+      <p>Loading parameters...</p>
+    </div>
+  </mat-card>
+
+  <mat-card *ngIf="!loading && dataSource.length === 0" class="empty-state">
+    <p>No selected races found. Please select a meeting in the Init page first.</p>
+  </mat-card>
+
+  <ng-container *ngIf="!loading">
+    <div *ngFor="let raceNum of raceNumbers" class="race-section">
+      <mat-card>
+        <h3>Race {{ raceNum }}</h3>
+        
+        <table mat-table [dataSource]="getRaceData(raceNum)" class="params-table">
+>>>>>>> 9aac1f3c2fd33f2f8c91f8ebd961a239a611b9b0
         
         <!-- Horse Number Column -->
         <ng-container matColumnDef="horseNum">
@@ -28,9 +48,15 @@
             <mat-form-field appearance="outline" class="medium-field">
               <input matInput 
                      [(ngModel)]="row.horseName" 
+<<<<<<< HEAD
                      [id]="'horseName-' + (dataSource.indexOf(row))"
                      (input)="onHorseNameInput(row)"
                      (keydown)="onHorseNameKeydown($event, dataSource.indexOf(row))"
+=======
+                     [id]="'horseName-' + row.rowIndex"
+                     (input)="onHorseNameInput(row)"
+                     (keydown)="onHorseNameKeydown($event, row.rowIndex)"
+>>>>>>> 9aac1f3c2fd33f2f8c91f8ebd961a239a611b9b0
                      placeholder="Enter horse name"
                      class="uppercase-input">
             </mat-form-field>
@@ -97,12 +123,22 @@
 
         <tr mat-header-row *matHeaderRowDef="['horseNum', 'horseName', 'special', 'rule4', 'rule4deduct']"></tr>
         <tr mat-row *matRowDef="let row; columns: ['horseNum', 'horseName', 'special', 'rule4', 'rule4deduct'];"></tr>
+<<<<<<< HEAD
       </table>
     </mat-card>
   </div>
 
   <!-- Save Button -->
   <div class="button-container" *ngIf="dataSource.length > 0">
+=======
+        </table>
+      </mat-card>
+    </div>
+  </ng-container>
+
+  <!-- Save Button -->
+  <div class="button-container" *ngIf="!loading && dataSource.length > 0">
+>>>>>>> 9aac1f3c2fd33f2f8c91f8ebd961a239a611b9b0
     <button mat-raised-button color="primary" (click)="saveParams()">
       Save Parameters
     </button>

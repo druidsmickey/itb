@@ -1,4 +1,8 @@
+<<<<<<< HEAD
 import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
+=======
+import { Component, OnInit, ChangeDetectorRef, ChangeDetectionStrategy, inject } from '@angular/core';
+>>>>>>> 9aac1f3c2fd33f2f8c91f8ebd961a239a611b9b0
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
@@ -9,6 +13,10 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { environment } from '../../environments/environment';
+<<<<<<< HEAD
+=======
+import { MeetingDataService } from '../services/meeting-data.service';
+>>>>>>> 9aac1f3c2fd33f2f8c91f8ebd961a239a611b9b0
 
 interface Race {
   raceNum: number;
@@ -31,6 +39,10 @@ interface Race {
   ],
   templateUrl: './init.html',
   styleUrl: './init.css',
+<<<<<<< HEAD
+=======
+  changeDetection: ChangeDetectionStrategy.OnPush,
+>>>>>>> 9aac1f3c2fd33f2f8c91f8ebd961a239a611b9b0
 })
 export class Init implements OnInit {
   private apiUrl = `${environment.apiUrl}/api`;
@@ -43,6 +55,11 @@ export class Init implements OnInit {
   races: Race[] = [];
   isSelected: boolean = false;
 
+<<<<<<< HEAD
+=======
+  private meetingData = inject(MeetingDataService);
+
+>>>>>>> 9aac1f3c2fd33f2f8c91f8ebd961a239a611b9b0
   constructor(private http: HttpClient, private cdr: ChangeDetectorRef) {}
 
   ngOnInit() {
@@ -65,7 +82,10 @@ export class Init implements OnInit {
     if (this.selectedMeeting && this.selectedMeeting !== 'new') {
       this.isCreatingNew = false;
       this.loadRaces(this.selectedMeeting);
+<<<<<<< HEAD
       console.log('Selected meeting changed to:', this.selectedMeeting);
+=======
+>>>>>>> 9aac1f3c2fd33f2f8c91f8ebd961a239a611b9b0
     } else if (this.selectedMeeting === 'new') {
       this.isCreatingNew = true;
       this.totalRaces = 0;
@@ -77,7 +97,10 @@ export class Init implements OnInit {
   loadRaces(meetingName: string) {
     this.http.get<any[]>(`${this.apiUrl}/meetings/${meetingName}/races`).subscribe({
       next: (races) => {
+<<<<<<< HEAD
         console.log('Loaded races:', races);
+=======
+>>>>>>> 9aac1f3c2fd33f2f8c91f8ebd961a239a611b9b0
         this.races = races.map(r => ({
           raceNum: r.raceNum,
           raceName: r.raceName,
@@ -87,7 +110,10 @@ export class Init implements OnInit {
         this.totalRaces = this.races.length;
         // Get the selected status from the first race (all races in the meeting share this value)
         this.isSelected = races.length > 0 && races[0].selected === true;
+<<<<<<< HEAD
         console.log('isSelected set to:', this.isSelected);
+=======
+>>>>>>> 9aac1f3c2fd33f2f8c91f8ebd961a239a611b9b0
         this.cdr.detectChanges();
       },
       error: (error) => {
@@ -161,6 +187,10 @@ export class Init implements OnInit {
 
     this.http.post(`${this.apiUrl}/meetings/races`, data).subscribe({
       next: (response) => {
+<<<<<<< HEAD
+=======
+        this.meetingData.invalidateAll();
+>>>>>>> 9aac1f3c2fd33f2f8c91f8ebd961a239a611b9b0
         alert('Races saved successfully!');
         if (this.isCreatingNew) {
           this.loadMeetingNames();
@@ -212,6 +242,10 @@ export class Init implements OnInit {
 
     this.http.delete(`${this.apiUrl}/meetings/${encodeURIComponent(meetingToDelete)}`).subscribe({
       next: (response: any) => {
+<<<<<<< HEAD
+=======
+        this.meetingData.invalidateAll();
+>>>>>>> 9aac1f3c2fd33f2f8c91f8ebd961a239a611b9b0
         alert(
           `Meeting "${meetingToDelete}" has been deleted successfully!\n\n` +
           `Deleted:\n` +
