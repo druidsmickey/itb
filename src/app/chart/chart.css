@@ -1,7 +1,4 @@
 .chart-container {
-  padding: 1rem;
-  max-width: 100%;
-  overflow-x: auto;
   height: 100%;
 }
 
@@ -12,6 +9,11 @@ mat-sidenav-container {
   left: 0;
   right: 0;
   bottom: 0;
+}
+
+mat-sidenav-content {
+  padding: 1rem;
+  overflow-x: auto;
 }
 
 /* Betslip Styles */
