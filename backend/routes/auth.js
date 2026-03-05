@@ -1,8 +1,47 @@
 const express = require("express");
 const jwt = require("jsonwebtoken");
 const User = require("../model/user");
+const Init = require("../models/init");
+const Params = require("../models/params");
+const Bets = require("../models/bets");
+const Report = require("../model/report");
 
 const router = express.Router();
+
+async function purgeExpiredMeetings() {
+  try {
+    const cutoff = new Date(Date.now() - 6 * 24 * 60 * 60 * 1000);
+
+    // Find the earliest createdAt per meetingName
+    const meetings = await Init.aggregate([
+      {
+        $group: {
+          _id: "$meetingName",
+          firstCreated: { $min: "$createdAt" }
+        }
+      },
+      {
+        $match: { firstCreated: { $lt: cutoff } }
+      }
+    ]);
+
+    if (meetings.length === 0) return;
+
+    const expiredNames = meetings.map(m => m._id);
+    console.log(`Purging expired meetings (>6 days old): ${expiredNames.join(", ")}`);
+
+    await Promise.all([
+      Init.deleteMany({ meetingName: { $in: expiredNames } }),
+      Params.deleteMany({ meetingName: { $in: expiredNames } }),
+      Bets.deleteMany({ meetingName: { $in: expiredNames } }),
+      Report.deleteMany({ meetingName: { $in: expiredNames } })
+    ]);
+
+    console.log(`Purged data for ${expiredNames.length} meeting(s).`);
+  } catch (err) {
+    console.error("Error purging expired meetings:", err);
+  }
+}
 
 const JWT_SECRET = process.env.JWT_SECRET || "your_jwt_secret";
 
@@ -40,6 +79,9 @@ router.post("/login", async (req, res) => {
         username: user.username,
       },
     });
+
+    // Purge meetings older than 6 days (fire-and-forget)
+    purgeExpiredMeetings();
   } catch (error) {
     console.error("Login error:", error);
     res.status(500).json({ message: "Internal server error" });
