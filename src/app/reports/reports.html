@@ -11,12 +11,13 @@
     />
   </div>
   <!-- Add Add-On for clients not in the list -->
-  <div *ngIf="showSummaryOnly" style="margin-top: 1rem; display: flex; align-items: center; justify-content: center; gap: 0.5rem;">
-    <span style="font-weight: 600; font-size: 0.9rem;">Add client Add-On:</span>
+  <div *ngIf="showSummaryOnly" style="margin-top: 1rem; display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 0.4rem; padding: 0 0.5rem;">
+    <span style="font-weight: 600; font-size: 0.85rem; white-space: nowrap;">Add client Add-On:</span>
     <input
       type="text"
       [(ngModel)]="newAddonClientName"
       placeholder="Client name"
+      style="width: 120px; min-width: 0; padding: 0.5rem 0.5rem;"
       (input)="newAddonClientName = newAddonClientName.toUpperCase()"
       (keydown.enter)="addManualAddonClient()"
     />
@@ -24,6 +25,7 @@
       type="number"
       [(ngModel)]="newAddonValue"
       placeholder="0"
+      style="width: 75px; min-width: 0; padding: 0.5rem 0.5rem; border: 1px solid #d1d5db; border-radius: 6px; font-size: 0.95rem;"
       (keydown.enter)="addManualAddonClient()"
     />
     <button class="addon-save-btn" (click)="addManualAddonClient()">Add</button>
