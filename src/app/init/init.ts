@@ -1,5 +1,5 @@
 import { Component, OnInit, ChangeDetectorRef, ChangeDetectionStrategy, inject } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { CommonModule, DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -22,6 +22,7 @@ interface Race {
   standalone: true,
   imports: [
     CommonModule,
+    DatePipe,
     FormsModule,
     MatFormFieldModule,
     MatInputModule,
@@ -44,6 +45,7 @@ export class Init implements OnInit {
   totalRaces: number = 0;
   races: Race[] = [];
   isSelected: boolean = false;
+  meetingCreatedAt: Date | null = null;
 
   private meetingData = inject(MeetingDataService);
 
@@ -68,12 +70,14 @@ export class Init implements OnInit {
   onMeetingChange() {
     if (this.selectedMeeting && this.selectedMeeting !== 'new') {
       this.isCreatingNew = false;
+      this.meetingCreatedAt = null;
       this.loadRaces(this.selectedMeeting);
     } else if (this.selectedMeeting === 'new') {
       this.isCreatingNew = true;
       this.totalRaces = 0;
       this.races = [];
       this.newMeetingName = '';
+      this.meetingCreatedAt = null;
     }
   }
 
@@ -89,6 +93,7 @@ export class Init implements OnInit {
         this.totalRaces = this.races.length;
         // Get the selected status from the first race (all races in the meeting share this value)
         this.isSelected = races.length > 0 && races[0].selected === true;
+        this.meetingCreatedAt = races.length > 0 && races[0].createdAt ? new Date(races[0].createdAt) : null;
         this.cdr.detectChanges();
       },
       error: (error) => {

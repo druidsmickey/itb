@@ -2,6 +2,8 @@ import { Component, OnInit, ChangeDetectorRef, ChangeDetectionStrategy } from '@
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
+import { MatIconModule } from '@angular/material/icon';
+import { MatButtonModule } from '@angular/material/button';
 import { environment } from '../../environments/environment';
 
 interface ClientReport {
@@ -15,7 +17,7 @@ interface ClientReport {
 @Component({
   selector: 'app-merge',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, MatIconModule, MatButtonModule],
   templateUrl: './merge.html',
   styleUrl: './merge.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -34,6 +36,12 @@ export class Merge implements OnInit {
   
   showSummaryOnly: boolean = false;
   filterClientName: string = '';
+  addonValues: { [clientName: string]: { [meetingName: string]: number } } = {};
+  savedAddonValues: { [clientName: string]: { [meetingName: string]: number } } = {};
+  manualAddonClients: string[] = [];
+  newAddonClientName: string = '';
+  newAddonValue: number = 0;
+  newAddonMeeting: string = '';
   
   // Cache for special and rule4 dates per meeting
   private specialDates = new Map<string, Date>(); // key: meetingName-raceNum-horseNum
@@ -101,6 +109,9 @@ export class Merge implements OnInit {
       // Calculate reports
       this.calculateClientReports();
       this.groupBetsByClient();
+
+      // Build merged key and load add-ons
+      await this.loadAddons();
       
       // Use setTimeout to avoid ExpressionChangedAfterItHasBeenCheckedError
       setTimeout(() => {
@@ -229,6 +240,115 @@ export class Merge implements OnInit {
     this.clientReports.forEach(report => {
       report.profitLoss = (report.totalStake + report.totalTax) - report.totalPayout;
     });
+  }
+
+  async loadAddons() {
+    // Initialize nested structure for all known clients
+    this.addonValues = {};
+    this.savedAddonValues = {};
+    this.manualAddonClients = [];
+    this.groupedItems.forEach((_, clientName) => {
+      this.addonValues[clientName] = {};
+      this.savedAddonValues[clientName] = {};
+    });
+
+    // Load per-meeting add-ons
+    for (const meetingName of this.selectedMeetings) {
+      try {
+        const addons = await this.http
+          .get<any[]>(`${this.apiUrl}/reports/addon/${encodeURIComponent(meetingName)}`)
+          .toPromise();
+        (addons || []).forEach(a => {
+          if (a.clientName && a.stake != null) {
+            if (!this.addonValues[a.clientName]) this.addonValues[a.clientName] = {};
+            if (!this.savedAddonValues[a.clientName]) this.savedAddonValues[a.clientName] = {};
+            this.addonValues[a.clientName][meetingName] = a.stake;
+            this.savedAddonValues[a.clientName][meetingName] = a.stake;
+            // Detect clients with add-ons but no bets
+            if (!this.groupedItems.has(a.clientName) && !this.manualAddonClients.includes(a.clientName)) {
+              this.manualAddonClients.push(a.clientName);
+            }
+          }
+        });
+      } catch (e) {
+        console.error(`Error loading add-ons for ${meetingName}:`, e);
+      }
+    }
+    // Set default meeting for the add-client bar
+    if (!this.newAddonMeeting || !this.selectedMeetings.includes(this.newAddonMeeting)) {
+      this.newAddonMeeting = this.selectedMeetings[0] || '';
+    }
+  }
+
+  addManualAddonClient() {
+    const name = this.newAddonClientName.trim().toUpperCase();
+    if (!name) return;
+    if (this.groupedItems.has(name)) {
+      alert(`"${name}" already exists in the summary list.`);
+      this.newAddonClientName = '';
+      return;
+    }
+    if (!this.manualAddonClients.includes(name)) {
+      this.manualAddonClients.push(name);
+    }
+    if (!this.addonValues[name]) this.addonValues[name] = {};
+    if (!this.savedAddonValues[name]) this.savedAddonValues[name] = {};
+    const meeting = this.newAddonMeeting || this.selectedMeetings[0];
+    const value = this.newAddonValue ?? 0;
+    this.addonValues[name][meeting] = value;
+    this.savedAddonValues[name][meeting] = value;
+    this.http.post(`${this.apiUrl}/reports/addon`, { meetingName: meeting, clientName: name, stake: value })
+      .subscribe({ error: (e) => console.error('Error saving add-on:', e) });
+    this.newAddonClientName = '';
+    this.newAddonValue = 0;
+    this.cdr.detectChanges();
+  }
+
+  deleteManualAddonClient(clientName: string) {
+    if (!confirm(`Delete Add-On for "${clientName}"?`)) return;
+    this.manualAddonClients = this.manualAddonClients.filter(c => c !== clientName);
+    delete this.addonValues[clientName];
+    delete this.savedAddonValues[clientName];
+    // Delete from DB for all selected meetings
+    this.selectedMeetings.forEach(meetingName => {
+      this.http.delete(`${this.apiUrl}/reports/addon/${encodeURIComponent(meetingName)}/${encodeURIComponent(clientName)}`)
+        .subscribe({ error: (e) => console.error('Error deleting add-on:', e) });
+    });
+    this.cdr.detectChanges();
+  }
+
+  saveAllAddons() {
+    const allClients = [...Array.from(this.groupedItems.keys()), ...this.manualAddonClients];
+    this.selectedMeetings.forEach(meetingName => {
+      allClients.forEach(clientName => {
+        if (this.addonValues[clientName]?.[meetingName] != null) {
+          this.saveAddon(clientName, meetingName);
+        }
+      });
+    });
+  }
+
+  saveAddon(clientName: string, meetingName: string) {
+    const stake = this.addonValues[clientName]?.[meetingName] ?? 0;
+    if (!this.savedAddonValues[clientName]) this.savedAddonValues[clientName] = {};
+    this.savedAddonValues[clientName][meetingName] = stake;
+    this.http.post(`${this.apiUrl}/reports/addon`, { meetingName, clientName, stake }).subscribe({
+      error: (e) => console.error('Error saving add-on:', e),
+      complete: () => this.cdr.detectChanges()
+    });
+    this.cdr.detectChanges();
+  }
+
+  getAdjustedPLForGroup(bets: any[], clientName: string): number {
+    const addonTotal = this.selectedMeetings.reduce(
+      (sum, m) => sum + (this.savedAddonValues[clientName]?.[m] || 0), 0
+    );
+    return this.getProfitLossForGroup(bets) + addonTotal;
+  }
+
+  getAdjustedPLForGroupByMeeting(bets: any[], clientName: string, meetingName: string): number {
+    return this.getProfitLossForGroupByMeeting(bets, meetingName)
+      + (this.savedAddonValues[clientName]?.[meetingName] || 0);
   }
 
   isHorseSpecial(param: any): boolean {
@@ -396,40 +516,44 @@ export class Merge implements OnInit {
 
   getNetTotalTaxAmount(): number {
     let total = 0;
-    this.clientReports.forEach(report => {
-      if (report.profitLoss > 0) {
-        total += report.totalTax;
-      }
+    this.clientReports.forEach((report, clientName) => {
+      const bets = this.groupedItems.get(clientName) || [];
+      if (this.getAdjustedPLForGroup(bets, clientName) > 0) total += report.totalTax;
     });
     return total;
   }
 
   getNetTotalProfitLoss(): number {
     let total = 0;
-    this.clientReports.forEach(report => {
-      if (report.profitLoss > 0) {
-        total += report.profitLoss;
-      }
+    this.groupedItems.forEach((bets, clientName) => {
+      const adj = this.getAdjustedPLForGroup(bets, clientName);
+      if (adj > 0) total += adj;
+    });
+    this.manualAddonClients.forEach(clientName => {
+      const adj = this.getAdjustedPLForGroup([], clientName);
+      if (adj > 0) total += adj;
     });
     return total;
   }
 
   getNetTotalTaxAmountLoss(): number {
     let total = 0;
-    this.clientReports.forEach(report => {
-      if (report.profitLoss < 0) {
-        total += report.totalTax;
-      }
+    this.clientReports.forEach((report, clientName) => {
+      const bets = this.groupedItems.get(clientName) || [];
+      if (this.getAdjustedPLForGroup(bets, clientName) < 0) total += report.totalTax;
     });
     return total;
   }
 
   getNetTotalLoss(): number {
     let total = 0;
-    this.clientReports.forEach(report => {
-      if (report.profitLoss < 0) {
-        total += Math.abs(report.profitLoss);
-      }
+    this.groupedItems.forEach((bets, clientName) => {
+      const adj = this.getAdjustedPLForGroup(bets, clientName);
+      if (adj < 0) total += Math.abs(adj);
+    });
+    this.manualAddonClients.forEach(clientName => {
+      const adj = this.getAdjustedPLForGroup([], clientName);
+      if (adj < 0) total += Math.abs(adj);
     });
     return total;
   }
@@ -437,9 +561,8 @@ export class Merge implements OnInit {
   getNetTotalProfitLossByMeeting(meetingName: string): number {
     let total = 0;
     this.groupedItems.forEach((bets, clientName) => {
-      const pl = this.getProfitLossForGroupByMeeting(bets, meetingName);
-      if (pl > 0) {
-        total += pl;
+      if (this.getAdjustedPLForGroup(bets, clientName) > 0) {
+        total += this.getAdjustedPLForGroupByMeeting(bets, clientName, meetingName);
       }
     });
     return total;
@@ -448,9 +571,8 @@ export class Merge implements OnInit {
   getNetTotalLossByMeeting(meetingName: string): number {
     let total = 0;
     this.groupedItems.forEach((bets, clientName) => {
-      const pl = this.getProfitLossForGroupByMeeting(bets, meetingName);
-      if (pl < 0) {
-        total += Math.abs(pl);
+      if (this.getAdjustedPLForGroup(bets, clientName) < 0) {
+        total += Math.abs(this.getAdjustedPLForGroupByMeeting(bets, clientName, meetingName));
       }
     });
     return total;

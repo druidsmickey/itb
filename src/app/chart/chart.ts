@@ -247,7 +247,7 @@ export class Chart implements OnInit {
           const horseStakes = stakesByHorse.get(horse.horseNum) || 0;
           
           // Calculate Avg: total stake / total books
-          horse.avg = horse.books > 0 ? horseStakes / horse.books : 0;
+          horse.avg = horse.books !== 0 ? horseStakes / horse.books : 0;
           
           // Calculate total payout with applicable rule4 deductions
           let totalPayout = 0;

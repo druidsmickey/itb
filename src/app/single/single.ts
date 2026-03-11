@@ -249,7 +249,7 @@ export class Single implements OnInit {
         const horseStakes = stakesByHorse.get(horseNum) || 0;
         
         // Calculate Avg: total stake / total books
-        horse.avg = horse.books > 0 ? horseStakes / horse.books : 0;
+        horse.avg = horse.books !== 0 ? horseStakes / horse.books : 0;
         
         let totalPayout = 0;
         horseBets.forEach(bet => {

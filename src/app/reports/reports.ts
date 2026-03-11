@@ -2,6 +2,8 @@ import { Component, OnInit, ChangeDetectorRef, ChangeDetectionStrategy, inject }
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
+import { MatIconModule } from '@angular/material/icon';
+import { MatButtonModule } from '@angular/material/button';
 import { environment } from '../../environments/environment';
 import { MeetingDataService } from '../services/meeting-data.service';
 
@@ -16,7 +18,7 @@ interface ClientReport {
 @Component({
   selector: 'app-reports',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, MatIconModule, MatButtonModule],
   templateUrl: './reports.html',
   styleUrl: './reports.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -33,6 +35,11 @@ export class Reports implements OnInit {
   showSummaryOnly: boolean = false;
   filterClientName: string = '';
   meetingName: string = '';
+  addonValues: { [clientName: string]: number } = {};
+  savedAddonValues: { [clientName: string]: number } = {};
+  manualAddonClients: string[] = [];
+  newAddonClientName: string = '';
+  newAddonValue: number = 0;
   
   // Cache for special and rule4 dates
   private specialDates = new Map<string, Date>();
@@ -77,11 +84,93 @@ export class Reports implements OnInit {
       // Calculate reports
       this.calculateClientReports();
       this.groupBetsByClient();
+      await this.loadAddons();
       
       this.cdr.detectChanges();
     } catch (error) {
       console.error('Error loading data:', error);
     }
+  }
+
+  async loadAddons() {
+    if (!this.meetingName) return;
+    try {
+      const addons = await this.http
+        .get<any[]>(`${this.apiUrl}/reports/addon/${encodeURIComponent(this.meetingName)}`)
+        .toPromise();
+      this.addonValues = {};
+      this.savedAddonValues = {};
+      this.manualAddonClients = [];
+      (addons || []).forEach(a => {
+        if (a.clientName && a.stake != null) {
+          this.addonValues[a.clientName] = a.stake;
+          this.savedAddonValues[a.clientName] = a.stake;
+          // If this client has no bets, treat as a manual addon client
+          if (!this.groupedItems.has(a.clientName)) {
+            this.manualAddonClients.push(a.clientName);
+          }
+        }
+      });
+    } catch (e) {
+      console.error('Error loading add-ons:', e);
+    }
+  }
+
+  deleteManualAddonClient(clientName: string) {
+    if (!confirm(`Delete Add-On for "${clientName}"?`)) return;
+    this.manualAddonClients = this.manualAddonClients.filter(c => c !== clientName);
+    delete this.addonValues[clientName];
+    delete this.savedAddonValues[clientName];
+    this.http.delete(`${this.apiUrl}/reports/addon/${encodeURIComponent(this.meetingName)}/${encodeURIComponent(clientName)}`)
+      .subscribe({ error: (e) => console.error('Error deleting add-on:', e) });
+    this.cdr.detectChanges();
+  }
+
+  addManualAddonClient() {
+    const name = this.newAddonClientName.trim().toUpperCase();
+    if (!name) return;
+    if (this.groupedItems.has(name)) {
+      alert(`"${name}" already exists in the summary list.`);
+      this.newAddonClientName = '';
+      return;
+    }
+    if (!this.manualAddonClients.includes(name)) {
+      this.manualAddonClients.push(name);
+    }
+    const value = this.newAddonValue ?? 0;
+    this.addonValues[name] = value;
+    this.savedAddonValues[name] = value;
+    this.newAddonClientName = '';
+    this.newAddonValue = 0;
+    // Persist to DB immediately
+    this.http.post(`${this.apiUrl}/reports/addon`, {
+      meetingName: this.meetingName,
+      clientName: name,
+      stake: value
+    }).subscribe({ error: (e) => console.error('Error saving add-on:', e) });
+    this.cdr.detectChanges();
+  }
+
+  saveAllAddons() {
+    Object.keys(this.addonValues).forEach(clientName => this.saveAddon(clientName));
+  }
+
+  saveAddon(clientName: string) {
+    const stake = this.addonValues[clientName] ?? 0;
+    this.savedAddonValues[clientName] = stake;
+    this.http.post(`${this.apiUrl}/reports/addon`, {
+      meetingName: this.meetingName,
+      clientName,
+      stake
+    }).subscribe({
+      error: (e) => console.error('Error saving add-on:', e),
+      complete: () => this.cdr.detectChanges()
+    });
+    this.cdr.detectChanges();
+  }
+
+  getAdjustedPLForGroup(bets: any[], clientName: string): number {
+    return this.getProfitLossForGroup(bets) + (this.savedAddonValues[clientName] || 0);
   }
 
   buildDateMaps() {
@@ -295,40 +384,44 @@ export class Reports implements OnInit {
 
   getNetTotalTaxAmount(): number {
     let total = 0;
-    this.clientReports.forEach(report => {
-      if (report.profitLoss > 0) {
-        total += report.totalTax;
-      }
+    this.clientReports.forEach((report, clientName) => {
+      const adj = report.profitLoss + (this.savedAddonValues[clientName] || 0);
+      if (adj > 0) total += report.totalTax;
     });
     return total;
   }
 
   getNetTotalProfitLoss(): number {
     let total = 0;
-    this.clientReports.forEach(report => {
-      if (report.profitLoss > 0) {
-        total += report.profitLoss;
-      }
+    this.clientReports.forEach((report, clientName) => {
+      const adj = report.profitLoss + (this.savedAddonValues[clientName] || 0);
+      if (adj > 0) total += adj;
+    });
+    this.manualAddonClients.forEach(clientName => {
+      const adj = this.savedAddonValues[clientName] || 0;
+      if (adj > 0) total += adj;
     });
     return total;
   }
 
   getNetTotalTaxAmountLoss(): number {
     let total = 0;
-    this.clientReports.forEach(report => {
-      if (report.profitLoss < 0) {
-        total += report.totalTax;
-      }
+    this.clientReports.forEach((report, clientName) => {
+      const adj = report.profitLoss + (this.savedAddonValues[clientName] || 0);
+      if (adj < 0) total += report.totalTax;
     });
     return total;
   }
 
   getNetTotalLoss(): number {
     let total = 0;
-    this.clientReports.forEach(report => {
-      if (report.profitLoss < 0) {
-        total += Math.abs(report.profitLoss);
-      }
+    this.clientReports.forEach((report, clientName) => {
+      const adj = report.profitLoss + (this.savedAddonValues[clientName] || 0);
+      if (adj < 0) total += Math.abs(adj);
+    });
+    this.manualAddonClients.forEach(clientName => {
+      const adj = this.savedAddonValues[clientName] || 0;
+      if (adj < 0) total += Math.abs(adj);
     });
     return total;
   }

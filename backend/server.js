@@ -39,6 +39,7 @@ mongoose.connection.on('error', (err) => {
 const Init = require('./models/init');
 const Params = require('./models/params');
 const Bets = require('./models/bets');
+const Report = require('./model/report');
 
 // â”€â”€ In-memory cache with TTL â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 const cache = new Map(); // key â†’ { data, expiry }
@@ -386,6 +387,48 @@ app.delete('/api/meetings/:meetingName', async (req, res) => {
         bets: betsResult.deletedCount
       }
     });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// ── Add-On endpoints ────────────────────────────────────────────────────────
+// GET all add-on values for a meeting
+app.get('/api/reports/addon/:meetingName', authenticateToken, async (req, res) => {
+  try {
+    const meetingName = decodeURIComponent(req.params.meetingName);
+    const addons = await Report.find({ meetingName }).lean();
+    res.json(addons);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// POST upsert add-on for a specific client+meeting
+app.post('/api/reports/addon', authenticateToken, async (req, res) => {
+  try {
+    const { meetingName, clientName, stake } = req.body;
+    if (!meetingName || !clientName) {
+      return res.status(400).json({ error: 'meetingName and clientName are required' });
+    }
+    const result = await Report.findOneAndUpdate(
+      { meetingName, clientName },
+      { meetingName, clientName, stake: stake || 0, horseName: 'AddOn', betTime: new Date() },
+      { upsert: true, new: true, setDefaultsOnInsert: true }
+    );
+    res.json(result);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// DELETE add-on for a specific client+meeting
+app.delete('/api/reports/addon/:meetingName/:clientName', authenticateToken, async (req, res) => {
+  try {
+    const meetingName = decodeURIComponent(req.params.meetingName);
+    const clientName = decodeURIComponent(req.params.clientName);
+    await Report.deleteOne({ meetingName, clientName });
+    res.json({ success: true });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }

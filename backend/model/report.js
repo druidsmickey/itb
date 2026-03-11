@@ -5,9 +5,14 @@ const reportSchema = new mongoose.Schema({
     type: String,
     required: true
   },
+  clientName: {
+    type: String,
+    required: true
+  },
   horseName: {
     type: String,
-    required: false
+    required: false,
+    default: 'AddOn'
   },
   stake: {
     type: Number,
@@ -20,5 +25,8 @@ const reportSchema = new mongoose.Schema({
 }, {
   timestamps: true
 });
+
+// One add-on record per client per meeting
+reportSchema.index({ meetingName: 1, clientName: 1 }, { unique: true });
 
 module.exports = mongoose.model('Report', reportSchema);
