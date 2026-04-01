@@ -1,5 +1,5 @@
 <mat-sidenav-container class="chart-container">
-  <mat-sidenav #sidenav position="end" mode="over" class="betslip-sidenav" [ngClass]="{'purchase-bg': betType === 'purchase'}" (closed)="resetBetslipForm()">
+  <mat-sidenav #sidenav position="end" mode="over" class="betslip-sidenav" [autoFocus]="false" [ngClass]="{'purchase-bg': betType === 'purchase'}" (closed)="resetBetslipForm()">
     <div class="betslip-content">
       <h3>R {{ selectedRaceNum }} - <span class="horse-name-display" style="color: red; font-size: 1.35rem; font-weight: bold;"># {{ betslipSelectedHorseName }}</span></h3>
      
@@ -34,13 +34,12 @@
         </div>
         
         <!-- Recent Clients -->
-        <div class="full-width" *ngIf="recentClients.length > 0" style="display: flex; gap: 5px; flex-wrap: wrap; margin-bottom: 2px;">
+        <div class="full-width recent-clients-wrap" *ngIf="recentClients.length > 0">
           <button 
             *ngFor="let client of recentClients" 
-            mat-mini-fab
+            mat-stroked-button
             (click)="selectClient(client)"
-            class="client-btn"
-            style="font-size: 14px; padding: 0 12px; min-width: 0; height: 36px;">
+            class="client-btn recent-client-btn">
             {{ client }}
           </button>
         </div>

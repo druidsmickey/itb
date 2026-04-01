@@ -12,6 +12,7 @@ import { MatNativeDateModule } from '@angular/material/core';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { environment } from '../../environments/environment';
 import { MeetingDataService } from '../services/meeting-data.service';
+import { OfflineStoreService } from '../services/offline-store.service';
 
 interface ParamRow {
   meetingName: string;
@@ -52,8 +53,10 @@ export class Params implements OnInit {
   raceNumbers: number[] = [];
   meetingName: string = '';
   loading: boolean = true;
+  private existingParams: any[] = [];
 
   private meetingData = inject(MeetingDataService);
+  private offlineStore = inject(OfflineStoreService);
 
   constructor(private http: HttpClient, private cdr: ChangeDetectorRef) {}
 
@@ -83,6 +86,7 @@ export class Params implements OnInit {
       this.meetingName = this.meetingData.getMeetingName();
 
       const params = await this.meetingData.getParams();
+      this.existingParams = params;
       this.buildDataSource(races, params);
       this.cdr.detectChanges();
     } catch (error) {
@@ -144,6 +148,12 @@ export class Params implements OnInit {
   }
 
   saveParams() {
+    const latestUpdatedAt = this.existingParams
+      .map(p => p.updatedAt)
+      .filter(Boolean)
+      .sort()
+      .pop();
+
     const data = {
       params: this.dataSource.map(row => ({
         meetingName: row.meetingName,
@@ -153,8 +163,18 @@ export class Params implements OnInit {
         special: row.special,
         rule4: row.rule4,
         rule4deduct: row.rule4deduct
-      }))
+      })),
+      clientRequestId: this.offlineStore.generateRequestId(),
+      syncBaseUpdatedAt: latestUpdatedAt || null
     };
+
+    if (typeof navigator !== 'undefined' && !navigator.onLine) {
+      this.offlineStore.queueParams(data).then(() => {
+        this.meetingData.invalidateParams();
+        alert('Parameters saved offline. Will sync when online.');
+      });
+      return;
+    }
 
     this.http.post(`${this.apiUrl}/params`, data).subscribe({
       next: (response) => {
@@ -196,6 +216,10 @@ export class Params implements OnInit {
   }
 
   autoSave() {
+    if (typeof navigator !== 'undefined' && !navigator.onLine) {
+      return;
+    }
+
     const data = {
       params: this.dataSource.map(row => ({
         meetingName: row.meetingName,

@@ -10,6 +10,7 @@ import { MatRadioModule } from '@angular/material/radio';
 import { MatSidenav } from '@angular/material/sidenav';
 import { RecentClientsService } from '../services/recent-clients.service';
 import { MeetingDataService } from '../services/meeting-data.service';
+import { OfflineStoreService } from '../services/offline-store.service';
 import { environment } from '../../environments/environment';
 
 interface Horse {
@@ -83,6 +84,7 @@ export class Single implements OnInit {
   tax: number | null = 5;
   
   private meetingData = inject(MeetingDataService);
+  private offlineStore = inject(OfflineStoreService);
 
   constructor(
     private http: HttpClient, 
@@ -355,6 +357,8 @@ export class Single implements OnInit {
       tax: this.tax,
       betTime: new Date()
     };
+
+    betData.clientRequestId = this.offlineStore.generateRequestId();
     
     const multiplier = this.betType === 'purchase' ? -1 : 1;
     
@@ -370,8 +374,19 @@ export class Single implements OnInit {
       betData.payout = (this.stakeBooks * 500) * multiplier;
     }
     
+    if (typeof navigator !== 'undefined' && !navigator.onLine) {
+      this.offlineStore.queueBet(betData).then(async () => {
+        this.meetingData.addLocalBet(betData);
+        this.cachedBets = await this.meetingData.getBets();
+        this.loadRaceData();
+        alert('Saved offline. Will sync when online.');
+        setTimeout(() => this.resetBetslipForm(), 0);
+      });
+      return;
+    }
+
     this.http.post(`${this.apiUrl}/bets`, betData).subscribe({
-      next: async (response) => {
+      next: async () => {
         this.meetingData.invalidateBets();
         await this.loadRecentClients();
         await this.loadLastBet();

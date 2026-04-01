@@ -136,6 +136,29 @@ h2 {
   background: white !important;
 }
 
+.recent-clients-wrap {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-bottom: 2px;
+}
+
+.recent-client-btn {
+  min-width: 0;
+  height: 34px;
+  padding: 0 12px;
+  border-radius: 18px;
+  font-size: 0.92rem;
+  font-weight: 500;
+  line-height: 32px;
+  text-transform: none;
+  white-space: nowrap;
+}
+
+.recent-client-btn .mdc-button__label {
+  white-space: nowrap;
+}
+
 @media (max-width: 450px) {
   .horse-buttons {
     gap: 2px;

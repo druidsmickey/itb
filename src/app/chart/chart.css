@@ -1,19 +1,27 @@
+:host {
+  display: block;
+  overscroll-behavior-y: none;
+}
+
 .chart-container {
-  height: 100%;
+  height: calc(100dvh - 170px);
+  min-height: 420px;
 }
 
 mat-sidenav-container {
-  height: calc(100% - 48px);
-  position: fixed;
-  top: 48px;
-  left: 0;
-  right: 0;
-  bottom: 0;
+  position: relative;
+  height: 100%;
+  overflow: hidden;
 }
 
 mat-sidenav-content {
   padding: 1rem;
   overflow-x: auto;
+  overflow-y: auto;
+  height: 100%;
+  box-sizing: border-box;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
 }
 
 /* Betslip Styles */
@@ -100,6 +108,29 @@ mat-sidenav-content {
   background: white !important;
 }
 
+.recent-clients-wrap {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-bottom: 2px;
+}
+
+.recent-client-btn {
+  min-width: 0;
+  height: 34px;
+  padding: 0 12px;
+  border-radius: 18px;
+  font-size: 0.92rem;
+  font-weight: 500;
+  line-height: 32px;
+  text-transform: none;
+  white-space: nowrap;
+}
+
+.recent-client-btn .mdc-button__label {
+  white-space: nowrap;
+}
+
 mat-sidenav {
   padding: 1rem;
 }
@@ -166,7 +197,16 @@ mat-radio-button {
 /* Mobile optimization for Samsung Galaxy A51 (412px width) */
 @media (max-width: 450px) {
   .chart-container {
+    height: calc(100dvh - 150px);
+    min-height: 320px;
     padding: 0.5rem;
+  }
+
+  /* 16px prevents mobile browser auto-zoom and page jump on input focus */
+  .betslip-sidenav input,
+  .betslip-sidenav .mat-mdc-input-element,
+  .betslip-sidenav textarea {
+    font-size: 16px !important;
   }
   
   .race-pair {

@@ -13,6 +13,11 @@ const userSchema = new mongoose.Schema({
     type: String,
     required: true
   },
+  appScope: {
+    type: String,
+    enum: ['gambit', 'cumbre', 'default'],
+    default: 'default'
+  },
   createdAt: {
     type: Date,
     default: Date.now

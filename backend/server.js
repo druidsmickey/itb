@@ -40,6 +40,39 @@ const Init = require('./models/init');
 const Params = require('./models/params');
 const Bets = require('./models/bets');
 const Report = require('./model/report');
+const SyncAudit = require('./models/syncAudit');
+
+async function logSyncEvent(req, event) {
+  try {
+    await SyncAudit.create({
+      operation: event.operation,
+      status: event.status,
+      clientRequestId: event.clientRequestId,
+      meetingName: event.meetingName,
+      userId: req.user?.userId,
+      username: req.user?.username,
+      appScope: req.user?.appScope,
+      message: event.message,
+      payloadSummary: event.payloadSummary,
+    });
+  } catch (error) {
+    console.error('Sync audit logging failed:', error.message);
+  }
+}
+
+async function isDuplicateSyncRequest(operation, clientRequestId) {
+  if (!clientRequestId) return false;
+
+  const existing = await SyncAudit.findOne({
+    operation,
+    clientRequestId,
+    status: { $in: ['synced', 'duplicate'] }
+  })
+    .select('_id')
+    .lean();
+
+  return Boolean(existing);
+}
 
 // â”€â”€ In-memory cache with TTL â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 const cache = new Map(); // key â†’ { data, expiry }
@@ -137,7 +170,7 @@ app.get('/api/meetings/:meetingName/races', async (req, res) => {
 // Save races for a meeting (create or update)
 app.post('/api/meetings/races', async (req, res) => {
   try {
-    const { meetingName, races, selected } = req.body;
+    const { meetingName, races, selected, clientRequestId, syncBaseUpdatedAt } = req.body;
     
     if (!meetingName) {
       return res.status(400).json({ error: 'Meeting name is required' });
@@ -145,6 +178,33 @@ app.post('/api/meetings/races', async (req, res) => {
     
     if (!races || !Array.isArray(races) || races.length === 0) {
       return res.status(400).json({ error: 'Races array is required' });
+    }
+
+    if (await isDuplicateSyncRequest('save-meeting-races', clientRequestId)) {
+      await logSyncEvent(req, {
+        operation: 'save-meeting-races',
+        status: 'duplicate',
+        clientRequestId,
+        meetingName,
+        message: 'Duplicate meeting races sync ignored',
+        payloadSummary: { raceCount: races.length }
+      });
+      return res.json({ success: true, duplicate: true });
+    }
+
+    if (syncBaseUpdatedAt) {
+      const latest = await Init.findOne({ meetingName }).sort({ updatedAt: -1 }).select('updatedAt').lean();
+      if (latest?.updatedAt && new Date(latest.updatedAt) > new Date(syncBaseUpdatedAt)) {
+        await logSyncEvent(req, {
+          operation: 'save-meeting-races',
+          status: 'conflict',
+          clientRequestId,
+          meetingName,
+          message: 'Meeting races changed on server after offline edit',
+          payloadSummary: { raceCount: races.length }
+        });
+        return res.status(409).json({ error: 'Conflict detected. Meeting was updated by another source.' });
+      }
     }
     
     // If selected is true, set all other meetings to false
@@ -171,8 +231,30 @@ app.post('/api/meetings/races', async (req, res) => {
     
     // Invalidate all init/race caches
     cacheInvalidate('meetings', 'races:', 'selected-races');
+
+    if (clientRequestId) {
+      await logSyncEvent(req, {
+        operation: 'save-meeting-races',
+        status: 'synced',
+        clientRequestId,
+        meetingName,
+        message: 'Meeting races synced',
+        payloadSummary: { raceCount: races.length }
+      });
+    }
+
     res.json({ success: true, races: savedRaces });
   } catch (error) {
+    if (req.body?.clientRequestId) {
+      await logSyncEvent(req, {
+        operation: 'save-meeting-races',
+        status: 'failed',
+        clientRequestId: req.body.clientRequestId,
+        meetingName: req.body.meetingName,
+        message: error.message,
+        payloadSummary: { raceCount: req.body?.races?.length || 0 }
+      });
+    }
     console.error('Error in POST /api/meetings/races:', error);
     res.status(500).json({ error: error.message });
   }
@@ -220,7 +302,7 @@ app.get('/api/params', async (req, res) => {
 // Save params (bulk upsert)
 app.post('/api/params', async (req, res) => {
   try {
-    const { params } = req.body;
+    const { params, clientRequestId, syncBaseUpdatedAt } = req.body;
     
     if (!params || !Array.isArray(params)) {
       return res.status(400).json({ error: 'Params array is required' });
@@ -228,6 +310,33 @@ app.post('/api/params', async (req, res) => {
     
     // Get meetingName from first param
     const meetingName = params.length > 0 ? params[0].meetingName : null;
+
+    if (await isDuplicateSyncRequest('save-params', clientRequestId)) {
+      await logSyncEvent(req, {
+        operation: 'save-params',
+        status: 'duplicate',
+        clientRequestId,
+        meetingName,
+        message: 'Duplicate params sync ignored',
+        payloadSummary: { rowCount: params.length }
+      });
+      return res.json({ success: true, duplicate: true });
+    }
+
+    if (meetingName && syncBaseUpdatedAt) {
+      const latest = await Params.findOne({ meetingName }).sort({ updatedAt: -1 }).select('updatedAt').lean();
+      if (latest?.updatedAt && new Date(latest.updatedAt) > new Date(syncBaseUpdatedAt)) {
+        await logSyncEvent(req, {
+          operation: 'save-params',
+          status: 'conflict',
+          clientRequestId,
+          meetingName,
+          message: 'Params changed on server after offline edit',
+          payloadSummary: { rowCount: params.length }
+        });
+        return res.status(409).json({ error: 'Conflict detected. Parameters were updated by another source.' });
+      }
+    }
     
     if (meetingName) {
       // Delete only params for this meeting
@@ -238,8 +347,33 @@ app.post('/api/params', async (req, res) => {
     const savedParams = await Params.insertMany(params);
     
     cacheInvalidate('params:');
+
+    if (clientRequestId) {
+      await logSyncEvent(req, {
+        operation: 'save-params',
+        status: 'synced',
+        clientRequestId,
+        meetingName,
+        message: 'Parameters synced',
+        payloadSummary: { rowCount: params.length }
+      });
+    }
+
     res.json({ success: true, params: savedParams });
   } catch (error) {
+    if (req.body?.clientRequestId) {
+      const meetingName = Array.isArray(req.body?.params) && req.body.params.length > 0
+        ? req.body.params[0].meetingName
+        : null;
+      await logSyncEvent(req, {
+        operation: 'save-params',
+        status: 'failed',
+        clientRequestId: req.body.clientRequestId,
+        meetingName,
+        message: error.message,
+        payloadSummary: { rowCount: req.body?.params?.length || 0 }
+      });
+    }
     console.error('Error saving params:', error);
     res.status(500).json({ error: error.message });
   }
@@ -313,12 +447,75 @@ app.get('/api/bets', async (req, res) => {
 // Save a bet
 app.post('/api/bets', async (req, res) => {
   try {
+    if (req.body?.clientRequestId) {
+      const existing = await Bets.findOne({ clientRequestId: req.body.clientRequestId }).lean();
+      if (existing) {
+        await logSyncEvent(req, {
+          operation: 'create-bet',
+          status: 'duplicate',
+          clientRequestId: req.body.clientRequestId,
+          meetingName: req.body.meetingName,
+          message: 'Duplicate offline bet ignored',
+          payloadSummary: {
+            raceNum: req.body.raceNum,
+            horseNum: req.body.horseNum,
+            clientName: req.body.clientName
+          }
+        });
+        return res.json({ success: true, bet: existing, duplicate: true });
+      }
+    }
+
     const bet = new Bets(req.body);
     const savedBet = await bet.save();
     cacheInvalidate('bets:', 'recent-clients');
+
+    if (req.body?.clientRequestId) {
+      await logSyncEvent(req, {
+        operation: 'create-bet',
+        status: 'synced',
+        clientRequestId: req.body.clientRequestId,
+        meetingName: req.body.meetingName,
+        message: 'Offline bet synced',
+        payloadSummary: {
+          raceNum: req.body.raceNum,
+          horseNum: req.body.horseNum,
+          clientName: req.body.clientName
+        }
+      });
+    }
+
     res.json({ success: true, bet: savedBet });
   } catch (error) {
+    if (req.body?.clientRequestId) {
+      await logSyncEvent(req, {
+        operation: 'create-bet',
+        status: 'failed',
+        clientRequestId: req.body.clientRequestId,
+        meetingName: req.body.meetingName,
+        message: error.message,
+        payloadSummary: {
+          raceNum: req.body.raceNum,
+          horseNum: req.body.horseNum,
+          clientName: req.body.clientName
+        }
+      });
+    }
     console.error('Error saving bet:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Sync audit log endpoint
+app.get('/api/sync/audit', async (req, res) => {
+  try {
+    const limit = Math.min(Number(req.query.limit) || 100, 500);
+    const logs = await SyncAudit.find()
+      .sort({ createdAt: -1 })
+      .limit(limit)
+      .lean();
+    res.json(logs);
+  } catch (error) {
     res.status(500).json({ error: error.message });
   }
 });

@@ -8,6 +8,7 @@ import { environment } from '../../environments/environment';
 export interface User {
   id: string;
   username: string;
+  appScope?: string;
 }
 
 export interface LoginResponse {
@@ -91,13 +92,30 @@ export class AuthService {
     }
   }
 
+  private inferAppContext(): string {
+    if (typeof window === 'undefined') {
+      return 'default';
+    }
+
+    const source = `${window.location.hostname} ${window.location.href}`.toLowerCase();
+    if (source.includes('gambit')) return 'gambit';
+    if (source.includes('cumbre') || source.includes('cumber')) return 'cumbre';
+    return localStorage.getItem('appContext') || 'default';
+  }
+
+  getCurrentAppContext(): string {
+    return this.inferAppContext();
+  }
+
   login(username: string, password: string): Observable<LoginResponse> {
+    const appContext = this.inferAppContext();
     return this.http
-      .post<LoginResponse>(`${this.apiUrl}/login`, { username, password })
+      .post<LoginResponse>(`${this.apiUrl}/login`, { username, password, appContext })
       .pipe(
         tap((response) => {
           localStorage.setItem('token', response.token);
           localStorage.setItem('currentUser', JSON.stringify(response.user));
+          localStorage.setItem('appContext', response.user?.appScope || appContext);
           this.updateActivity();
           this.currentUserSubject.next(response.user);
         })

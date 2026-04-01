@@ -10,6 +10,7 @@ import { MatCardModule } from '@angular/material/card';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { environment } from '../../environments/environment';
 import { MeetingDataService } from '../services/meeting-data.service';
+import { OfflineStoreService } from '../services/offline-store.service';
 
 interface Race {
   raceNum: number;
@@ -48,6 +49,7 @@ export class Init implements OnInit {
   meetingCreatedAt: Date | null = null;
 
   private meetingData = inject(MeetingDataService);
+  private offlineStore = inject(OfflineStoreService);
 
   constructor(private http: HttpClient, private cdr: ChangeDetectorRef) {}
 
@@ -162,8 +164,18 @@ export class Init implements OnInit {
     const data = {
       meetingName: meetingName.trim(),
       races: this.races,
-      selected: this.isSelected
+      selected: this.isSelected,
+      clientRequestId: this.offlineStore.generateRequestId(),
+      syncBaseUpdatedAt: this.meetingCreatedAt ? this.meetingCreatedAt.toISOString() : null
     };
+
+    if (typeof navigator !== 'undefined' && !navigator.onLine) {
+      this.offlineStore.queueMeetingRaces(data).then(() => {
+        this.meetingData.invalidateAll();
+        alert('Races saved offline. Will sync when online.');
+      });
+      return;
+    }
 
     this.http.post(`${this.apiUrl}/meetings/races`, data).subscribe({
       next: (response) => {

@@ -5,6 +5,7 @@ const User = require("./model/user");
 const mongoUri = process.env.MONGODB_URI;
 const USERNAME = "Admin";
 const PASSWORD = "admin123@";
+const APP_SCOPE = process.env.APP_SCOPE || 'default';
 async function upsertUser() {
   try {
     await mongoose.connect(mongoUri);
@@ -16,6 +17,7 @@ async function upsertUser() {
     if (existingUser) {
       // Update existing user
       existingUser.password = PASSWORD;
+      existingUser.appScope = APP_SCOPE;
       await existingUser.save();
       console.log(`User '${USERNAME}' updated with new password`);
     } else {
@@ -23,6 +25,7 @@ async function upsertUser() {
       const newUser = new User({
         username: USERNAME,
         password: PASSWORD,
+        appScope: APP_SCOPE,
       });
 
       await newUser.save();

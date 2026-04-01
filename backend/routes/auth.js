@@ -8,6 +8,33 @@ const Report = require("../model/report");
 
 const router = express.Router();
 
+function normalizeContext(value) {
+  const raw = String(value || '').toLowerCase();
+  if (!raw) return null;
+  if (raw.includes('gambit')) return 'gambit';
+  if (raw.includes('cumbre') || raw.includes('cumber')) return 'cumbre';
+  return null;
+}
+
+function contextFromUrl(urlLike) {
+  if (!urlLike) return null;
+  const text = String(urlLike).toLowerCase();
+  if (text.includes('gambit')) return 'gambit';
+  if (text.includes('cumbre') || text.includes('cumber')) return 'cumbre';
+  return null;
+}
+
+function detectRequestContext(req) {
+  return (
+    normalizeContext(req.headers['x-app-context']) ||
+    normalizeContext(req.body?.appContext) ||
+    contextFromUrl(req.headers.origin) ||
+    contextFromUrl(req.headers.referer) ||
+    contextFromUrl(req.headers.host) ||
+    'default'
+  );
+}
+
 async function purgeExpiredMeetings() {
   try {
     const cutoff = new Date(Date.now() - 6 * 24 * 60 * 60 * 1000);
@@ -48,6 +75,7 @@ const JWT_SECRET = process.env.JWT_SECRET || "your_jwt_secret";
 router.post("/login", async (req, res) => {
   try {
     const { username, password } = req.body;
+    const requestContext = detectRequestContext(req);
 
     if (!username || !password) {
       return res
@@ -65,8 +93,12 @@ router.post("/login", async (req, res) => {
       return res.status(401).json({ message: "Invalid credentials" });
     }
 
+    const appScope = (user.appScope && user.appScope !== 'default')
+      ? user.appScope
+      : (requestContext || 'default');
+
     const token = jwt.sign(
-      { userId: user._id, username: user.username },
+      { userId: user._id, username: user.username, appScope },
       JWT_SECRET,
       { expiresIn: "24h" }
     );
@@ -77,6 +109,7 @@ router.post("/login", async (req, res) => {
       user: {
         id: user._id,
         username: user.username,
+        appScope,
       },
     });
 
@@ -100,6 +133,13 @@ const authenticateToken = (req, res, next) => {
     if (err) {
       return res.status(403).json({ message: "Invalid token" });
     }
+
+    const requestContext = detectRequestContext(req);
+    const tokenScope = user.appScope || 'default';
+    if (requestContext && tokenScope && requestContext !== tokenScope) {
+      return res.status(403).json({ message: 'Token scope mismatch. Please login for this app context.' });
+    }
+
     req.user = user;
     next();
   });
