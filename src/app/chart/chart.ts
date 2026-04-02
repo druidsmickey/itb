@@ -219,8 +219,13 @@ export class Chart implements OnInit {
       raceMap.forEach((horses, raceNum) => {
         const raceBets = betsByRace.get(raceNum) || [];
         
-        // Calculate total stakes once
-        const totalStakes = raceBets.reduce((sum, bet) => sum + (bet.stake || 0), 0);
+        // Calculate total stakes — exclude bets for special/rule4 (voided) horses
+        const horsesMap = new Map(horses.map(h => [h.horseNum, h]));
+        const totalStakes = raceBets.reduce((sum, bet) => {
+          const h = horsesMap.get(bet.horseNum);
+          if (h && (h.hasSpecial || h.hasRule4)) return sum;
+          return sum + (bet.stake || 0);
+        }, 0);
         const rule4Deductions = rule4ByRace.get(raceNum) || [];
         
         // Group bets by horse for efficient lookup
@@ -228,6 +233,10 @@ export class Chart implements OnInit {
         const stakesByHorse = new Map<number, number>();
         
         raceBets.forEach(bet => {
+          // Skip bets for special/rule4 (voided) horses
+          const betHorse = horsesMap.get(bet.horseNum);
+          if (betHorse && (betHorse.hasSpecial || betHorse.hasRule4)) return;
+
           if (!betsByHorse.has(bet.horseNum)) {
             betsByHorse.set(bet.horseNum, []);
             stakesByHorse.set(bet.horseNum, 0);
@@ -238,9 +247,8 @@ export class Chart implements OnInit {
           stakesByHorse.set(bet.horseNum, (stakesByHorse.get(bet.horseNum) || 0) + (bet.stake || 0));
           
           // Add to books
-          const horse = horses.find(h => h.horseNum === bet.horseNum);
-          if (horse && bet.books) {
-            horse.books += bet.books;
+          if (betHorse && bet.books) {
+            betHorse.books += bet.books;
           }
         });
         
@@ -280,7 +288,7 @@ export class Chart implements OnInit {
           raceNum,
           horses: horses.sort((a, b) => a.horseNum - b.horseNum),
           hasWinner: horses.some(h => h.isWinner),
-          totalAvg: horses.reduce((sum, h) => sum + h.avg, 0)
+          totalAvg: horses.filter(h => !h.hasSpecial && !h.hasRule4).reduce((sum, h) => sum + h.avg, 0)
         }))
         .sort((a, b) => a.raceNum - b.raceNum);
       

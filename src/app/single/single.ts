@@ -224,6 +224,10 @@ export class Single implements OnInit {
         for (const [horseNum, specialDate] of specialDates.entries()) {
           if (betTime < specialDate) return;
         }
+
+        // Skip bets for special/rule4 horses — they are voided, don't affect P&L
+        const betHorse = horsesMap.get(b.horseNum);
+        if (betHorse && (betHorse.hasSpecial || betHorse.hasRule4)) return;
         
         // Add to total stakes
         totalStakes += (b.stake || 0);
@@ -271,8 +275,10 @@ export class Single implements OnInit {
         horse.profitLoss = totalStakes - totalPayout;
       });
       
-      // Calculate total average: sum of all horse averages
-      this.totalAvg = Array.from(horsesMap.values()).reduce((sum, h) => sum + h.avg, 0);
+      // Calculate total average: exclude special/rule4 horses
+      this.totalAvg = Array.from(horsesMap.values())
+        .filter(h => !h.hasSpecial && !h.hasRule4)
+        .reduce((sum, h) => sum + h.avg, 0);
       
       // Convert map to sorted array
       this.horses = Array.from(horsesMap.values()).sort((a, b) => a.horseNum - b.horseNum);
