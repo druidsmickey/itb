@@ -43,7 +43,7 @@ export class App {
     const dx = event.changedTouches[0].clientX - this.touchStartX;
     const dy = event.changedTouches[0].clientY - this.touchStartY;
     // Only trigger if horizontal swipe dominates and exceeds threshold
-    if (Math.abs(dx) < 50 || Math.abs(dx) < Math.abs(dy)) return;
+    if (Math.abs(dx) < 20 || Math.abs(dx) < Math.abs(dy)) return;
     const current = this.selectedTabIndex();
     if (dx < 0 && current < this.TAB_COUNT - 1) {
       this.selectedTabIndex.set(current + 1);
