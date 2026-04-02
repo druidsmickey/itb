@@ -510,44 +510,6 @@ export class Reports implements OnInit {
     return deductions.length > 0 ? `(${deductions.join(' ')})` : '';
   }
 
-  validateNumericInput(event: any, key: string) {
-    const input = event.target as HTMLInputElement;
-    const value = input.value;
-    
-    // Allow empty, minus sign, digits, and one decimal point
-    // Remove any invalid characters but keep minus if at start
-    let sanitized = value.replace(/[^0-9.\-]/g, '');
-    
-    // Ensure only one minus sign and only at the start
-    const parts = sanitized.split('');
-    let hasMinusAtStart = false;
-    sanitized = parts.filter((char, index) => {
-      if (char === '-') {
-        if (index === 0 && !hasMinusAtStart) {
-          hasMinusAtStart = true;
-          return true;
-        }
-        return false;
-      }
-      return true;
-    }).join('');
-    
-    // Ensure only one decimal point
-    const decimalIndex = sanitized.indexOf('.');
-    if (decimalIndex !== -1) {
-      const beforeDecimal = sanitized.substring(0, decimalIndex + 1);
-      const afterDecimal = sanitized.substring(decimalIndex + 1).replace(/\./g, '');
-      sanitized = beforeDecimal + afterDecimal;
-    }
-    
-    // Update the input if it was changed
-    if (value !== sanitized) {
-      const cursorPos = input.selectionStart || 0;
-      input.value = sanitized;
-      input.setSelectionRange(cursorPos, cursorPos);
-    }
-  }
-
   printProfit() {
     window.print();
   }

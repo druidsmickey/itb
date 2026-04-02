@@ -33,21 +33,21 @@
 
   <!-- Add manual addon client -->
   <div *ngIf="showSummaryOnly && allBets.length > 0" style="margin-top: 1rem; display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 0.4rem; padding: 0 0.5rem;">
-    <span style="font-weight: 600; font-size: 0.85rem; white-space: nowrap;">Add client Add-On:</span>
+    <span style="font-weight: 600; font-size: 0.85rem; white-space: nowrap;">Add-On:</span>
     <input
       type="text"
       class="addon-client-input"
       [(ngModel)]="newAddonClientName"
-      placeholder="Client name"
+      placeholder="Client"
       (input)="newAddonClientName = newAddonClientName.toUpperCase()"
       (keydown.enter)="addManualAddonClient()"
-      style="min-width: 0; width: 120px;"
+      style="min-width: 0; width: 65px;"
     />
     <input
       type="number"
       [(ngModel)]="newAddonValue"
       placeholder="0"
-      style="width: 75px; padding: 0.5rem 0.5rem; border: 1px solid #d1d5db; border-radius: 6px; font-size: 0.95rem; min-width: 0;"
+      style="width: 65px; padding: 0.5rem 0.5rem; border: 1px solid #d1d5db; border-radius: 6px; font-size: 0.95rem; min-width: 0;"
       (keydown.enter)="addManualAddonClient()"
     />
     <select [(ngModel)]="newAddonMeeting" style="padding: 0.5rem 0.25rem; border: 1px solid #d1d5db; border-radius: 6px; font-size: 0.85rem; min-width: 0; max-width: 120px;">

@@ -12,22 +12,20 @@
   </div>
   <!-- Add Add-On for clients not in the list -->
   <div *ngIf="showSummaryOnly" style="margin-top: 1rem; display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 0.4rem; padding: 0 0.5rem;">
-    <span style="font-weight: 600; font-size: 0.85rem; white-space: nowrap;">Add client Add-On:</span>
+    <span style="font-weight: 600; font-size: 0.85rem; white-space: nowrap;">Add-On:</span>
     <input
       type="text"
       [(ngModel)]="newAddonClientName"
-      placeholder="Client name"
-      style="width: 120px; min-width: 0; padding: 0.5rem 0.5rem;"
+      placeholder="Client"
+      style="width: 65px; min-width: 0; padding: 0.5rem 0.5rem;"
       (input)="newAddonClientName = newAddonClientName.toUpperCase()"
       (keydown.enter)="addManualAddonClient()"
     />
     <input
-      type="text"
-      inputmode="decimal"
+      type="number"
       [(ngModel)]="newAddonValue"
       placeholder="0"
-      style="width: 75px; min-width: 0; padding: 0.5rem 0.5rem; border: 1px solid #d1d5db; border-radius: 6px; font-size: 0.95rem;"
-      (input)="validateNumericInput($event, 'newAddonValue')"
+      style="width: 65px; min-width: 0; padding: 0.5rem 0.5rem; border: 1px solid #d1d5db; border-radius: 6px; font-size: 0.95rem;"
       (keydown.enter)="addManualAddonClient()"
     />
     <button class="addon-save-btn" (click)="addManualAddonClient()">Add</button>
@@ -144,12 +142,10 @@
           <td style="text-align: left;">{{ clientName.key }}</td>
           <td style="text-align: left;">
             <input
-              type="text"
-              inputmode="decimal"
+              type="number"
               class="addon-input"
               [(ngModel)]="addonValues[clientName.key]"
-              placeholder="0"
-              (input)="validateNumericInput($event, clientName.key)">
+              placeholder="0">
           </td>
           <td style="text-align: left;">
             <span class="summary-value" [class.negative-value]="getTaxAmountForGroup(clientName.value) < 0">
@@ -173,7 +169,7 @@
         <tr *ngIf="(savedAddonValues[clientName] || 0) >= 0">
           <td style="text-align: left;">{{ clientName }}</td>
           <td style="text-align: left;">
-            <input type="text" inputmode="decimal" class="addon-input" [(ngModel)]="addonValues[clientName]" placeholder="0" (input)="validateNumericInput($event, clientName)">
+            <input type="number" class="addon-input" [(ngModel)]="addonValues[clientName]" placeholder="0">
             <button mat-icon-button (click)="deleteManualAddonClient(clientName)" style="vertical-align: middle;" title="Remove">
               <mat-icon style="font-size: 16px; color: #dc2626;">delete</mat-icon>
             </button>
@@ -223,12 +219,10 @@
           <td style="text-align: left;">{{ clientName.key }}</td>
           <td style="text-align: left;">
             <input
-              type="text"
-              inputmode="decimal"
+              type="number"
               class="addon-input"
               [(ngModel)]="addonValues[clientName.key]"
-              placeholder="0"
-              (input)="validateNumericInput($event, clientName.key)">
+              placeholder="0">
           </td>
           <td style="text-align: left;">
             <span class="summary-value" [class.negative-value]="getTaxAmountForGroup(clientName.value) < 0">
@@ -252,7 +246,7 @@
         <tr *ngIf="(savedAddonValues[clientName] || 0) < 0">
           <td style="text-align: left;">{{ clientName }}</td>
           <td style="text-align: left;">
-            <input type="text" inputmode="decimal" class="addon-input" [(ngModel)]="addonValues[clientName]" placeholder="0" (input)="validateNumericInput($event, clientName)">
+            <input type="number" class="addon-input" [(ngModel)]="addonValues[clientName]" placeholder="0">
             <button mat-icon-button (click)="deleteManualAddonClient(clientName)" style="vertical-align: middle;" title="Remove">
               <mat-icon style="font-size: 16px; color: #dc2626;">delete</mat-icon>
             </button>
@@ -273,13 +267,13 @@
           </span>
         </td>
         <td style="text-align: left;">
-          <span class="summary-value negative-value">
-            {{ -getNetTotalLossUnadjusted() | number:'2.0-0' }}
+          <span class="summary-value" [class.negative-value]="getNetTotalLossUnadjusted() < 0">
+            {{ getNetTotalLossUnadjusted() | number:'2.0-0' }}
           </span>
         </td>
         <td style="text-align: left;">
-          <span class="summary-value negative-value">
-            {{ -getNetTotalLoss() | number:'2.0-0' }}
+          <span class="summary-value" [class.negative-value]="getNetTotalLoss() < 0">
+            {{ getNetTotalLoss() | number:'2.0-0' }}
           </span>
         </td>
       </tr>
