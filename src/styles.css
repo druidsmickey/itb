@@ -7,9 +7,9 @@
 
 .mat-mdc-tab-label-container {
   overflow-x: auto !important;
+  overflow-y: hidden !important;
 }
 
 .mat-mdc-tab-list {
   flex-grow: 0 !important;
-  transform: none !important;
 }
