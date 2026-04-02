@@ -7,7 +7,7 @@ import { MatSidenavModule } from '@angular/material/sidenav';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatRadioModule } from '@angular/material/radio';
-import { MatSidenav } from '@angular/material/sidenav';
+import { MatSidenav, MatSidenavContent } from '@angular/material/sidenav';
 import { RecentClientsService } from '../services/recent-clients.service';
 import { MeetingDataService } from '../services/meeting-data.service';
 import { OfflineStoreService } from '../services/offline-store.service';
@@ -51,6 +51,7 @@ export class Chart implements OnInit {
   private apiUrl = `${environment.apiUrl}/api`;
   
   @ViewChild('sidenav') sidenav!: MatSidenav;
+  @ViewChild('sidenavContent') sidenavContent!: MatSidenavContent;
   
   races: Race[] = [];
   loading: boolean = true;
@@ -326,7 +327,8 @@ export class Chart implements OnInit {
     // Select the clicked horse
     this.selectBetslipHorse(horseNum);
     
-    // Open sidenav
+    // Open sidenav - it always overlays the current viewport because the
+    // container is exactly 100dvh tall and content scrolls inside it
     this.sidenav.open();
   }
 
