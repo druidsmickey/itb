@@ -512,40 +512,39 @@ export class Reports implements OnInit {
 
   validateNumericInput(event: any, key: string) {
     const input = event.target as HTMLInputElement;
-    let value = input.value;
+    const value = input.value;
     
     // Allow empty, minus sign, digits, and one decimal point
-    // Remove any invalid characters
-    value = value.replace(/[^0-9.\-]/g, '');
+    // Remove any invalid characters but keep minus if at start
+    let sanitized = value.replace(/[^0-9.\-]/g, '');
     
-    // Ensure only one minus sign at the start
-    const minusCount = (value.match(/-/g) || []).length;
-    if (minusCount > 1) {
-      value = value.replace(/-/g, '');
-      if (value.length > 0) value = '-' + value;
-    } else if (minusCount === 1 && value.indexOf('-') !== 0) {
-      value = value.replace('-', '');
-      value = '-' + value;
-    }
+    // Ensure only one minus sign and only at the start
+    const parts = sanitized.split('');
+    let hasMinusAtStart = false;
+    sanitized = parts.filter((char, index) => {
+      if (char === '-') {
+        if (index === 0 && !hasMinusAtStart) {
+          hasMinusAtStart = true;
+          return true;
+        }
+        return false;
+      }
+      return true;
+    }).join('');
     
     // Ensure only one decimal point
-    const decimalCount = (value.match(/\./g) || []).length;
-    if (decimalCount > 1) {
-      const parts = value.split('.');
-      value = parts[0] + '.' + parts.slice(1).join('');
+    const decimalIndex = sanitized.indexOf('.');
+    if (decimalIndex !== -1) {
+      const beforeDecimal = sanitized.substring(0, decimalIndex + 1);
+      const afterDecimal = sanitized.substring(decimalIndex + 1).replace(/\./g, '');
+      sanitized = beforeDecimal + afterDecimal;
     }
     
-    // Update the input value if it was sanitized
-    if (input.value !== value) {
-      input.value = value;
-    }
-    
-    // Update the model with parsed number or 0
-    const numValue = value === '' || value === '-' || value === '.' ? 0 : parseFloat(value);
-    if (key === 'newAddonValue') {
-      this.newAddonValue = isNaN(numValue) ? 0 : numValue;
-    } else {
-      this.addonValues[key] = isNaN(numValue) ? 0 : numValue;
+    // Update the input if it was changed
+    if (value !== sanitized) {
+      const cursorPos = input.selectionStart || 0;
+      input.value = sanitized;
+      input.setSelectionRange(cursorPos, cursorPos);
     }
   }
 
