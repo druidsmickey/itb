@@ -426,6 +426,24 @@ export class Reports implements OnInit {
     return total;
   }
 
+  getNetTotalProfitLossUnadjusted(): number {
+    let total = 0;
+    this.clientReports.forEach((report, clientName) => {
+      const adj = report.profitLoss + (this.savedAddonValues[clientName] || 0);
+      if (adj > 0) total += report.profitLoss;
+    });
+    return total;
+  }
+
+  getNetTotalLossUnadjusted(): number {
+    let total = 0;
+    this.clientReports.forEach((report, clientName) => {
+      const adj = report.profitLoss + (this.savedAddonValues[clientName] || 0);
+      if (adj < 0) total += Math.abs(report.profitLoss);
+    });
+    return total;
+  }
+
   compareKeysAsc(a: any, b: any): number {
     return a.key.localeCompare(b.key);
   }

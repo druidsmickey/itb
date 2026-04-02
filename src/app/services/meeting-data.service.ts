@@ -47,9 +47,20 @@ export class MeetingDataService {
     }
   }
 
+  private isAuthenticated(): boolean {
+    return !!localStorage.getItem('token');
+  }
+
   /** Selected races (cached). */
   getSelectedRaces(): Promise<any[]> {
     if (!this._selectedRaces) {
+      if (!this.isAuthenticated()) {
+        const cached = this.readCache<any[]>('selectedRaces') || [];
+        if (cached.length > 0 && cached[0]?.meetingName) {
+          this._meetingName = cached[0].meetingName;
+        }
+        return Promise.resolve(cached);
+      }
       this._selectedRaces = firstValueFrom(
         this.http.get<any[]>(`${this.apiUrl}/params/selected-races`)
       ).then(races => {
@@ -77,6 +88,9 @@ export class MeetingDataService {
     if (!this._meetingName) await this.getSelectedRaces();
     if (!this._params) {
       const key = `params:${this._meetingName || 'default'}`;
+      if (!this.isAuthenticated()) {
+        return this.readCache<any[]>(key) || [];
+      }
       this._params = firstValueFrom(
         this.http.get<any[]>(
           `${this.apiUrl}/params?meetingName=${encodeURIComponent(this._meetingName)}`
@@ -97,6 +111,9 @@ export class MeetingDataService {
     if (!this._meetingName) await this.getSelectedRaces();
     if (!this._bets) {
       const key = `bets:${this._meetingName || 'default'}`;
+      if (!this.isAuthenticated()) {
+        return this.readCache<any[]>(key) || [];
+      }
       this._bets = firstValueFrom(
         this.http.get<any[]>(
           `${this.apiUrl}/bets?meetingName=${encodeURIComponent(this._meetingName)}`
@@ -115,6 +132,9 @@ export class MeetingDataService {
   /** Last placed bet (cached). */
   getLastBet(): Promise<any> {
     if (!this._lastBet) {
+      if (!this.isAuthenticated()) {
+        return Promise.resolve(this.readCache<any>('lastBet'));
+      }
       this._lastBet = firstValueFrom(
         this.http.get<any>(`${this.apiUrl}/bets/last`)
       ).then((value) => {

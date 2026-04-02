@@ -133,6 +133,7 @@
         <th style="text-align: left;">Add-On <button class="addon-save-btn" (click)="saveAllAddons()">Save</button></th>
         <th style="text-align: left;">Tax</th>
         <th style="text-align: left;">Collect</th>
+        <th style="text-align: left;">Total</th>
       </tr>
     </thead>
     <tbody>
@@ -147,12 +148,17 @@
               placeholder="0">
           </td>
           <td style="text-align: left;">
-            <span class="summary-value">
+            <span class="summary-value" [class.negative-value]="getTaxAmountForGroup(clientName.value) < 0">
               {{ getTaxAmountForGroup(clientName.value) | number:'2.0-0' }}
             </span>
           </td>
           <td style="text-align: left;">
-            <span class="summary-value">
+            <span class="summary-value" [class.negative-value]="getProfitLossForGroup(clientName.value) < 0">
+              {{ getProfitLossForGroup(clientName.value) | number:'2.0-0' }}
+            </span>
+          </td>
+          <td style="text-align: left;">
+            <span class="summary-value" [class.negative-value]="getAdjustedPLForGroup(clientName.value, clientName.key) < 0">
               {{ getAdjustedPLForGroup(clientName.value, clientName.key) | number:'2.0-0' }}
             </span>
           </td>
@@ -169,8 +175,9 @@
             </button>
           </td>
           <td style="text-align: left;">-</td>
+          <td style="text-align: left;">-</td>
           <td style="text-align: left;">
-            <span class="summary-value">{{ (savedAddonValues[clientName] || 0) | number:'2.0-0' }}</span>
+            <span class="summary-value" [class.negative-value]="(savedAddonValues[clientName] || 0) < 0">{{ (savedAddonValues[clientName] || 0) | number:'2.0-0' }}</span>
           </td>
         </tr>
       </ng-container>
@@ -178,13 +185,18 @@
         <td style="text-align: left; font-weight: 600;">Net Total:</td>
         <td></td>
         <td style="text-align: left;">
-          <span class="summary-value">
+          <span class="summary-value" [class.negative-value]="getNetTotalTaxAmount() < 0">
             {{ getNetTotalTaxAmount() | number:'2.0-0' }}
           </span>
         </td>
         <td style="text-align: left;">
-          <span class="summary-value">
-            {{ getNetTotalProfitLoss() > 0 ? (getNetTotalProfitLoss() | number:'2.0-0') : '0.00' }}
+          <span class="summary-value" [class.negative-value]="getNetTotalProfitLossUnadjusted() < 0">
+            {{ getNetTotalProfitLossUnadjusted() | number:'2.0-0' }}
+          </span>
+        </td>
+        <td style="text-align: left;">
+          <span class="summary-value" [class.negative-value]="getNetTotalProfitLoss() < 0">
+            {{ getNetTotalProfitLoss() | number:'2.0-0' }}
           </span>
         </td>
       </tr>
@@ -198,6 +210,7 @@
         <th style="text-align: left;">Add-On <button class="addon-save-btn" (click)="saveAllAddons()">Save</button></th>
         <th style="text-align: left;">Tax</th>
         <th style="text-align: left;">Pay</th>
+        <th style="text-align: left;">Total</th>
       </tr>
     </thead>
     <tbody>
@@ -212,13 +225,18 @@
               placeholder="0">
           </td>
           <td style="text-align: left;">
-            <span class="summary-value">
+            <span class="summary-value" [class.negative-value]="getTaxAmountForGroup(clientName.value) < 0">
               {{ getTaxAmountForGroup(clientName.value) | number:'2.0-0' }}
             </span>
           </td>
           <td style="text-align: left;">
-            <span class="summary-value negative-value">
-              {{ (getAdjustedPLForGroup(clientName.value, clientName.key) * -1) | number:'2.0-0' }}
+            <span class="summary-value" [class.negative-value]="getProfitLossForGroup(clientName.value) < 0">
+              {{ getProfitLossForGroup(clientName.value) | number:'2.0-0' }}
+            </span>
+          </td>
+          <td style="text-align: left;">
+            <span class="summary-value" [class.negative-value]="getAdjustedPLForGroup(clientName.value, clientName.key) < 0">
+              {{ getAdjustedPLForGroup(clientName.value, clientName.key) | number:'2.0-0' }}
             </span>
           </td>
         </tr>
@@ -234,8 +252,9 @@
             </button>
           </td>
           <td style="text-align: left;">-</td>
+          <td style="text-align: left;">-</td>
           <td style="text-align: left;">
-            <span class="summary-value negative-value">{{ ((savedAddonValues[clientName] || 0) * -1) | number:'2.0-0' }}</span>
+            <span class="summary-value negative-value">{{ (savedAddonValues[clientName] || 0) | number:'2.0-0' }}</span>
           </td>
         </tr>
       </ng-container>
@@ -243,13 +262,18 @@
         <td style="text-align: left; font-weight: 600;">Net Total:</td>
         <td></td>
         <td style="text-align: left;">
-          <span class="summary-value">
+          <span class="summary-value" [class.negative-value]="getNetTotalTaxAmountLoss() < 0">
             {{ getNetTotalTaxAmountLoss() | number:'2.0-0' }}
           </span>
         </td>
         <td style="text-align: left;">
           <span class="summary-value negative-value">
-            {{ getNetTotalLoss() | number:'2.0-0' }}
+            {{ -getNetTotalLossUnadjusted() | number:'2.0-0' }}
+          </span>
+        </td>
+        <td style="text-align: left;">
+          <span class="summary-value negative-value">
+            {{ -getNetTotalLoss() | number:'2.0-0' }}
           </span>
         </td>
       </tr>

@@ -274,6 +274,8 @@ export class Dataentry implements OnInit {
     this.stakeBooks = null;
     this.odds = null;
     this.tax = 5;
+    this.oddsType = 'f500';
+    this.betType = 'sales';
     this.cdr.detectChanges();
   }
 

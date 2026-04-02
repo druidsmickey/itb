@@ -1,4 +1,8 @@
-<mat-tab-group>
+<mat-tab-group
+  [selectedIndex]="selectedTabIndex()"
+  (selectedIndexChange)="selectedTabIndex.set($event)"
+  (touchstart)="onTouchStart($event)"
+  (touchend)="onTouchEnd($event)">
   <mat-tab label="Entry">
     <ng-template matTabContent>
       <app-dataentry></app-dataentry>

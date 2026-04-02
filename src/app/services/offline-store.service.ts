@@ -74,10 +74,10 @@ export class OfflineStoreService {
   }
 
   async getPendingItems(): Promise<OutboxItem[]> {
-    const items = await this.db.outbox.toArray();
+    const items: OutboxItem[] = await this.db.outbox.toArray();
     return items
-      .filter(item => item.status === 'pending' || item.status === 'failed')
-      .sort((a, b) => a.createdAt.localeCompare(b.createdAt));
+      .filter((item: OutboxItem) => item.status === 'pending' || item.status === 'failed')
+      .sort((a: OutboxItem, b: OutboxItem) => a.createdAt.localeCompare(b.createdAt));
   }
 
   async markSynced(id: number): Promise<void> {
