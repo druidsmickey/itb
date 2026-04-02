@@ -13,11 +13,14 @@ h2 {
 .form-card {
   padding: 20px;
   margin-bottom: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
 }
 
 .full-width {
   width: 100%;
-  margin-bottom: 15px;
+  margin-bottom: 0;
 }
 
 .race-card {
