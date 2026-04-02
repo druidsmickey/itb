@@ -1,1 +1,15 @@
 /* You can add global styles to this file, and also import other style files */
+
+/* Horizontal scrolling tab header */
+.mat-mdc-tab-header {
+  overflow-x: auto;
+}
+
+.mat-mdc-tab-header-pagination {
+  display: none !important;
+}
+
+.mat-mdc-tab-list {
+  flex-grow: 0;
+  transform: none !important;
+}
