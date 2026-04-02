@@ -22,10 +22,12 @@
       (keydown.enter)="addManualAddonClient()"
     />
     <input
-      type="number"
+      type="text"
+      inputmode="decimal"
       [(ngModel)]="newAddonValue"
       placeholder="0"
       style="width: 75px; min-width: 0; padding: 0.5rem 0.5rem; border: 1px solid #d1d5db; border-radius: 6px; font-size: 0.95rem;"
+      (input)="validateNumericInput($event, 'newAddonValue')"
       (keydown.enter)="addManualAddonClient()"
     />
     <button class="addon-save-btn" (click)="addManualAddonClient()">Add</button>
@@ -142,10 +144,12 @@
           <td style="text-align: left;">{{ clientName.key }}</td>
           <td style="text-align: left;">
             <input
-              type="number"
+              type="text"
+              inputmode="decimal"
               class="addon-input"
               [(ngModel)]="addonValues[clientName.key]"
-              placeholder="0">
+              placeholder="0"
+              (input)="validateNumericInput($event, clientName.key)">
           </td>
           <td style="text-align: left;">
             <span class="summary-value" [class.negative-value]="getTaxAmountForGroup(clientName.value) < 0">
@@ -169,7 +173,7 @@
         <tr *ngIf="(savedAddonValues[clientName] || 0) >= 0">
           <td style="text-align: left;">{{ clientName }}</td>
           <td style="text-align: left;">
-            <input type="number" class="addon-input" [(ngModel)]="addonValues[clientName]" placeholder="0">
+            <input type="text" inputmode="decimal" class="addon-input" [(ngModel)]="addonValues[clientName]" placeholder="0" (input)="validateNumericInput($event, clientName)">
             <button mat-icon-button (click)="deleteManualAddonClient(clientName)" style="vertical-align: middle;" title="Remove">
               <mat-icon style="font-size: 16px; color: #dc2626;">delete</mat-icon>
             </button>
@@ -219,10 +223,12 @@
           <td style="text-align: left;">{{ clientName.key }}</td>
           <td style="text-align: left;">
             <input
-              type="number"
+              type="text"
+              inputmode="decimal"
               class="addon-input"
               [(ngModel)]="addonValues[clientName.key]"
-              placeholder="0">
+              placeholder="0"
+              (input)="validateNumericInput($event, clientName.key)">
           </td>
           <td style="text-align: left;">
             <span class="summary-value" [class.negative-value]="getTaxAmountForGroup(clientName.value) < 0">
@@ -246,7 +252,7 @@
         <tr *ngIf="(savedAddonValues[clientName] || 0) < 0">
           <td style="text-align: left;">{{ clientName }}</td>
           <td style="text-align: left;">
-            <input type="number" class="addon-input" [(ngModel)]="addonValues[clientName]" placeholder="0">
+            <input type="text" inputmode="decimal" class="addon-input" [(ngModel)]="addonValues[clientName]" placeholder="0" (input)="validateNumericInput($event, clientName)">
             <button mat-icon-button (click)="deleteManualAddonClient(clientName)" style="vertical-align: middle;" title="Remove">
               <mat-icon style="font-size: 16px; color: #dc2626;">delete</mat-icon>
             </button>

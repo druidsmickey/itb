@@ -510,6 +510,45 @@ export class Reports implements OnInit {
     return deductions.length > 0 ? `(${deductions.join(' ')})` : '';
   }
 
+  validateNumericInput(event: any, key: string) {
+    const input = event.target as HTMLInputElement;
+    let value = input.value;
+    
+    // Allow empty, minus sign, digits, and one decimal point
+    // Remove any invalid characters
+    value = value.replace(/[^0-9.\-]/g, '');
+    
+    // Ensure only one minus sign at the start
+    const minusCount = (value.match(/-/g) || []).length;
+    if (minusCount > 1) {
+      value = value.replace(/-/g, '');
+      if (value.length > 0) value = '-' + value;
+    } else if (minusCount === 1 && value.indexOf('-') !== 0) {
+      value = value.replace('-', '');
+      value = '-' + value;
+    }
+    
+    // Ensure only one decimal point
+    const decimalCount = (value.match(/\./g) || []).length;
+    if (decimalCount > 1) {
+      const parts = value.split('.');
+      value = parts[0] + '.' + parts.slice(1).join('');
+    }
+    
+    // Update the input value if it was sanitized
+    if (input.value !== value) {
+      input.value = value;
+    }
+    
+    // Update the model with parsed number or 0
+    const numValue = value === '' || value === '-' || value === '.' ? 0 : parseFloat(value);
+    if (key === 'newAddonValue') {
+      this.newAddonValue = isNaN(numValue) ? 0 : numValue;
+    } else {
+      this.addonValues[key] = isNaN(numValue) ? 0 : numValue;
+    }
+  }
+
   printProfit() {
     window.print();
   }
