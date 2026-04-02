@@ -2,14 +2,14 @@
 
 /* Horizontal scrolling tab header */
 .mat-mdc-tab-header {
-  overflow-x: auto;
+  overflow: visible !important;
 }
 
-.mat-mdc-tab-header-pagination {
-  display: none !important;
+.mat-mdc-tab-label-container {
+  overflow-x: auto !important;
 }
 
 .mat-mdc-tab-list {
-  flex-grow: 0;
+  flex-grow: 0 !important;
   transform: none !important;
 }
