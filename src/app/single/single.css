@@ -200,6 +200,8 @@
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
+  height: 100%;
+  box-sizing: border-box;
 }
 
 .betslip-content h3 {

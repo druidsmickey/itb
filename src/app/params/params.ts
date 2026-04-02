@@ -149,10 +149,11 @@ export class Params implements OnInit {
 
   saveParams() {
     const latestUpdatedAt = this.existingParams
-      .map(p => p.updatedAt)
+      .map(p => p.updatedAt ? new Date(p.updatedAt).getTime() : 0)
       .filter(Boolean)
-      .sort()
-      .pop();
+      .reduce((max, t) => t > max ? t : max, 0);
+
+    const syncBaseUpdatedAt = latestUpdatedAt > 0 ? new Date(latestUpdatedAt).toISOString() : null;
 
     const data = {
       params: this.dataSource.map(row => ({
@@ -165,7 +166,7 @@ export class Params implements OnInit {
         rule4deduct: row.rule4deduct
       })),
       clientRequestId: this.offlineStore.generateRequestId(),
-      syncBaseUpdatedAt: latestUpdatedAt || null
+      syncBaseUpdatedAt: syncBaseUpdatedAt
     };
 
     if (typeof navigator !== 'undefined' && !navigator.onLine) {
@@ -177,9 +178,13 @@ export class Params implements OnInit {
     }
 
     this.http.post(`${this.apiUrl}/params`, data).subscribe({
-      next: (response) => {
+      next: (response: any) => {
         this.meetingData.invalidateParams();
         alert('Parameters saved successfully!');
+        // Refresh existingParams so the next save uses up-to-date updatedAt timestamps
+        if (response?.params) {
+          this.existingParams = response.params;
+        }
       },
       error: (error) => {
         console.error('Error saving params:', error);
@@ -233,9 +238,13 @@ export class Params implements OnInit {
     };
 
     this.http.post(`${this.apiUrl}/params`, data).subscribe({
-      next: (response) => {
+      next: (response: any) => {
         this.meetingData.invalidateParams();
         console.log('Auto-saved successfully');
+        // Keep existingParams in sync so subsequent manual saves don't get a 409
+        if (response?.params) {
+          this.existingParams = response.params;
+        }
       },
       error: (error) => {
         console.error('Error auto-saving params:', error);

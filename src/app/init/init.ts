@@ -95,7 +95,13 @@ export class Init implements OnInit {
         this.totalRaces = this.races.length;
         // Get the selected status from the first race (all races in the meeting share this value)
         this.isSelected = races.length > 0 && races[0].selected === true;
-        this.meetingCreatedAt = races.length > 0 && races[0].createdAt ? new Date(races[0].createdAt) : null;
+        // Use the max updatedAt across all races — this matches what the backend
+        // conflict check compares against (Init.findOne().sort({ updatedAt: -1 }))
+        const maxUpdatedAt = races.reduce((max: number, r: any) => {
+          const t = r.updatedAt ? new Date(r.updatedAt).getTime() : 0;
+          return t > max ? t : max;
+        }, 0);
+        this.meetingCreatedAt = maxUpdatedAt > 0 ? new Date(maxUpdatedAt) : null;
         this.cdr.detectChanges();
       },
       error: (error) => {
@@ -186,6 +192,9 @@ export class Init implements OnInit {
           this.selectedMeeting = meetingName;
           this.isCreatingNew = false;
         }
+        // Always reload races to refresh meetingCreatedAt after save,
+        // otherwise subsequent saves will get a 409 conflict.
+        this.loadRaces(meetingName.trim());
       },
       error: (error) => {
         console.error('Error saving races:', error);
