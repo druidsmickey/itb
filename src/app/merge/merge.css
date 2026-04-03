@@ -218,7 +218,10 @@
 
 .summary-value {
   font-weight: 600;
-  color: #059669;
+}
+
+.positive-value {
+  color: #059669 !important;
 }
 
 .negative-value {

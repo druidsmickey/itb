@@ -549,11 +549,11 @@ export class Merge implements OnInit {
     let total = 0;
     this.groupedItems.forEach((bets, clientName) => {
       const adj = this.getAdjustedPLForGroup(bets, clientName);
-      if (adj < 0) total += Math.abs(adj);
+      if (adj < 0) total += adj;
     });
     this.manualAddonClients.forEach(clientName => {
       const adj = this.getAdjustedPLForGroup([], clientName);
-      if (adj < 0) total += Math.abs(adj);
+      if (adj < 0) total += adj;
     });
     return total;
   }
@@ -568,11 +568,43 @@ export class Merge implements OnInit {
     return total;
   }
 
+  getNetTotalProfitLossByMeetingRaw(meetingName: string): number {
+    let total = 0;
+    this.groupedItems.forEach((bets, clientName) => {
+      if (this.getAdjustedPLForGroup(bets, clientName) > 0) {
+        total += this.getProfitLossForGroupByMeeting(bets, meetingName);
+      }
+    });
+    // Also include manual addon clients that have positive total
+    this.manualAddonClients.forEach(clientName => {
+      if (this.getAdjustedPLForGroup([], clientName) > 0) {
+        total += (this.savedAddonValues[clientName]?.[meetingName] || 0);
+      }
+    });
+    return total;
+  }
+
   getNetTotalLossByMeeting(meetingName: string): number {
     let total = 0;
     this.groupedItems.forEach((bets, clientName) => {
       if (this.getAdjustedPLForGroup(bets, clientName) < 0) {
-        total += Math.abs(this.getAdjustedPLForGroupByMeeting(bets, clientName, meetingName));
+        total += this.getAdjustedPLForGroupByMeeting(bets, clientName, meetingName);
+      }
+    });
+    return total;
+  }
+
+  getNetTotalLossByMeetingRaw(meetingName: string): number {
+    let total = 0;
+    this.groupedItems.forEach((bets, clientName) => {
+      if (this.getAdjustedPLForGroup(bets, clientName) < 0) {
+        total += this.getProfitLossForGroupByMeeting(bets, meetingName);
+      }
+    });
+    // Also include manual addon clients that have negative total
+    this.manualAddonClients.forEach(clientName => {
+      if (this.getAdjustedPLForGroup([], clientName) < 0) {
+        total += (this.savedAddonValues[clientName]?.[meetingName] || 0);
       }
     });
     return total;
