@@ -625,12 +625,18 @@ export class Merge implements OnInit {
   }
 
   isSpecial(bet: any): boolean {
-    // Check if any horse in the race has a special flag set
-    return this.allParams.some(p => 
-      p.meetingName === bet.meetingName &&
-      p.raceNum === bet.raceNum && 
-      p.special != null
-    );
+    // Check if ANY horse in the race was withdrawn special
+    // and if this bet was placed before that withdrawal
+    const betTime = new Date(bet.betTime || bet.createdAt);
+    
+    // Check all horses in this race for special withdrawals
+    return this.allParams.some(p => {
+      if (p.meetingName !== bet.meetingName || p.raceNum !== bet.raceNum) return false;
+      const key = `${p.meetingName}-${p.raceNum}-${p.horseNum}`;
+      const specialDate = this.specialDates.get(key);
+      // If this horse was withdrawn and bet was before withdrawal, mark as special
+      return specialDate && betTime < specialDate;
+    });
   }
 
   isRule4(bet: any): boolean {

@@ -231,14 +231,21 @@ export class Reports implements OnInit {
       if (bet.cancelled) return;
       
       const betTime = new Date(bet.betTime || bet.createdAt);
-      const key = `${bet.raceNum}-${bet.horseNum}`;
       
-      // Check if bet should be ignored due to special date
-      const specialDate = this.specialDates.get(key);
-      if (specialDate && betTime < specialDate) {
-        return; // Ignore bets before special date
+      // Check if ANY horse in this race was withdrawn special before this bet
+      // This matches the isSpecial() logic - all bets in race before withdrawal are ignored
+      const raceParams = this.allParams.filter(p => p.raceNum === bet.raceNum);
+      const hasSpecialWithdrawal = raceParams.some(p => {
+        const key = `${p.raceNum}-${p.horseNum}`;
+        const specialDate = this.specialDates.get(key);
+        return specialDate && betTime < specialDate;
+      });
+      
+      if (hasSpecialWithdrawal) {
+        return; // Ignore all bets in race before special withdrawal
       }
       
+      const key = `${bet.raceNum}-${bet.horseNum}`;
       // Check if horse has rule4
       const hasRule4 = this.rule4HorseSet.has(key);
       
@@ -457,10 +464,18 @@ export class Reports implements OnInit {
   }
 
   isSpecial(bet: any): boolean {
-    // Check if any horse in the race has a special flag set
-    // Use specialHorseSet for O(1) lookup per horse
+    // Check if ANY horse in the race was withdrawn special
+    // and if this bet was placed before that withdrawal
+    const betTime = new Date(bet.betTime || bet.createdAt);
+    
+    // Check all horses in this race for special withdrawals
     const raceParams = this.allParams.filter(p => p.raceNum === bet.raceNum);
-    return raceParams.some(p => this.specialHorseSet.has(`${p.raceNum}-${p.horseNum}`));
+    return raceParams.some(p => {
+      const key = `${p.raceNum}-${p.horseNum}`;
+      const specialDate = this.specialDates.get(key);
+      // If this horse was withdrawn and bet was before withdrawal, mark as special
+      return specialDate && betTime < specialDate;
+    });
   }
 
   isRule4(bet: any): boolean {
