@@ -35,11 +35,11 @@ export class Reports implements OnInit {
   showSummaryOnly: boolean = false;
   filterClientName: string = '';
   meetingName: string = '';
-  addonValues: { [clientName: string]: string } = {};
-  savedAddonValues: { [clientName: string]: string } = {};
+  addonValues: { [clientName: string]: number } = {};
+  savedAddonValues: { [clientName: string]: number } = {};
   manualAddonClients: string[] = [];
   newAddonClientName: string = '';
-  newAddonValue: string = '';
+  newAddonValue: number = 0;
   
   // Cache for special and rule4 dates
   private specialDates = new Map<string, Date>();
@@ -56,12 +56,6 @@ export class Reports implements OnInit {
 
   ngOnInit() {
     this.loadData();
-  }
-
-  parseAddonValue(value: string | undefined): number {
-    if (!value || value.trim() === '') return 0;
-    const parsed = parseFloat(value);
-    return isNaN(parsed) ? 0 : parsed;
   }
 
   async loadData() {
@@ -143,16 +137,16 @@ export class Reports implements OnInit {
     if (!this.manualAddonClients.includes(name)) {
       this.manualAddonClients.push(name);
     }
-    const value = this.newAddonValue || '';
+    const value = this.newAddonValue ?? 0;
     this.addonValues[name] = value;
     this.savedAddonValues[name] = value;
     this.newAddonClientName = '';
-    this.newAddonValue = '';
+    this.newAddonValue = 0;
     // Persist to DB immediately
     this.http.post(`${this.apiUrl}/reports/addon`, {
       meetingName: this.meetingName,
       clientName: name,
-      stake: this.parseAddonValue(value)
+      stake: value
     }).subscribe({ error: (e) => console.error('Error saving add-on:', e) });
     this.cdr.detectChanges();
   }
@@ -162,12 +156,12 @@ export class Reports implements OnInit {
   }
 
   saveAddon(clientName: string) {
-    const value = this.addonValues[clientName] || '';
-    this.savedAddonValues[clientName] = value;
+    const stake = this.addonValues[clientName] ?? 0;
+    this.savedAddonValues[clientName] = stake;
     this.http.post(`${this.apiUrl}/reports/addon`, {
       meetingName: this.meetingName,
       clientName,
-      stake: this.parseAddonValue(value)
+      stake
     }).subscribe({
       error: (e) => console.error('Error saving add-on:', e),
       complete: () => this.cdr.detectChanges()
@@ -176,7 +170,7 @@ export class Reports implements OnInit {
   }
 
   getAdjustedPLForGroup(bets: any[], clientName: string): number {
-    return this.getProfitLossForGroup(bets) + this.parseAddonValue(this.savedAddonValues[clientName]);
+    return this.getProfitLossForGroup(bets) + (this.savedAddonValues[clientName] || 0);
   }
 
   buildDateMaps() {
@@ -398,7 +392,7 @@ export class Reports implements OnInit {
   getNetTotalTaxAmount(): number {
     let total = 0;
     this.clientReports.forEach((report, clientName) => {
-      const adj = report.profitLoss + this.parseAddonValue(this.savedAddonValues[clientName]);
+      const adj = report.profitLoss + (this.savedAddonValues[clientName] || 0);
       if (adj >= 0) total += report.totalTax;
     });
     return total;
@@ -407,11 +401,11 @@ export class Reports implements OnInit {
   getNetTotalProfitLoss(): number {
     let total = 0;
     this.clientReports.forEach((report, clientName) => {
-      const adj = report.profitLoss + this.parseAddonValue(this.savedAddonValues[clientName]);
+      const adj = report.profitLoss + (this.savedAddonValues[clientName] || 0);
       if (adj >= 0) total += adj;
     });
     this.manualAddonClients.forEach(clientName => {
-      const adj = this.parseAddonValue(this.savedAddonValues[clientName]);
+      const adj = this.savedAddonValues[clientName] || 0;
       if (adj >= 0) total += adj;
     });
     return total;
@@ -420,7 +414,7 @@ export class Reports implements OnInit {
   getNetTotalTaxAmountLoss(): number {
     let total = 0;
     this.clientReports.forEach((report, clientName) => {
-      const adj = report.profitLoss + this.parseAddonValue(this.savedAddonValues[clientName]);
+      const adj = report.profitLoss + (this.savedAddonValues[clientName] || 0);
       if (adj < 0) total += report.totalTax;
     });
     return total;
@@ -429,11 +423,11 @@ export class Reports implements OnInit {
   getNetTotalLoss(): number {
     let total = 0;
     this.clientReports.forEach((report, clientName) => {
-      const adj = report.profitLoss + this.parseAddonValue(this.savedAddonValues[clientName]);
+      const adj = report.profitLoss + (this.savedAddonValues[clientName] || 0);
       if (adj < 0) total += adj;
     });
     this.manualAddonClients.forEach(clientName => {
-      const adj = this.parseAddonValue(this.savedAddonValues[clientName]);
+      const adj = this.savedAddonValues[clientName] || 0;
       if (adj < 0) total += adj;
     });
     return total;
@@ -442,7 +436,7 @@ export class Reports implements OnInit {
   getNetTotalProfitLossUnadjusted(): number {
     let total = 0;
     this.clientReports.forEach((report, clientName) => {
-      const adj = report.profitLoss + this.parseAddonValue(this.savedAddonValues[clientName]);
+      const adj = report.profitLoss + (this.savedAddonValues[clientName] || 0);
       if (adj >= 0) total += (report.profitLoss - report.totalTax);
     });
     return total;
@@ -451,7 +445,7 @@ export class Reports implements OnInit {
   getNetTotalLossUnadjusted(): number {
     let total = 0;
     this.clientReports.forEach((report, clientName) => {
-      const adj = report.profitLoss + this.parseAddonValue(this.savedAddonValues[clientName]);
+      const adj = report.profitLoss + (this.savedAddonValues[clientName] || 0);
       if (adj < 0) total += (report.profitLoss - report.totalTax);
     });
     return total;

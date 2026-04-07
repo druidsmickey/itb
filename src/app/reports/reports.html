@@ -22,7 +22,7 @@
       (keydown.enter)="addManualAddonClient()"
     />
     <input
-      type="text"
+      type="number"
       [(ngModel)]="newAddonValue"
       placeholder="0"
       style="width: 65px; min-width: 0; padding: 0.5rem 0.5rem; border: 1px solid #d1d5db; border-radius: 6px; font-size: 0.95rem;"
@@ -142,11 +142,11 @@
           <td style="text-align: left;">{{ clientName.key }}</td>
           <td style="text-align: left;">
             <input
-              type="text"
+              type="number"
               class="addon-input"
               [(ngModel)]="addonValues[clientName.key]"
               placeholder="0">
-            <button mat-icon-button (click)="addonValues[clientName.key] = ''; saveAddon(clientName.key)" style="vertical-align: middle;" title="Clear Add-On">
+            <button mat-icon-button (click)="addonValues[clientName.key] = 0; saveAddon(clientName.key)" style="vertical-align: middle;" title="Clear Add-On">
               <mat-icon style="font-size: 16px; color: #dc2626;">delete</mat-icon>
             </button>
           </td>
@@ -169,10 +169,10 @@
       </ng-container>
       <!-- Manual addon clients (no bets) in profit table -->
       <ng-container *ngFor="let clientName of manualAddonClients">
-        <tr *ngIf="parseAddonValue(savedAddonValues[clientName]) >= 0">
+        <tr *ngIf="(savedAddonValues[clientName] || 0) >= 0">
           <td style="text-align: left;">{{ clientName }}</td>
           <td style="text-align: left;">
-            <input type="text" class="addon-input" [(ngModel)]="addonValues[clientName]" placeholder="0">
+            <input type="number" class="addon-input" [(ngModel)]="addonValues[clientName]" placeholder="0">
             <button mat-icon-button (click)="deleteManualAddonClient(clientName)" style="vertical-align: middle;" title="Remove">
               <mat-icon style="font-size: 16px; color: #dc2626;">delete</mat-icon>
             </button>
@@ -180,7 +180,7 @@
           <td style="text-align: left;">-</td>
           <td style="text-align: left;">-</td>
           <td style="text-align: left;">
-            <span class="summary-value" [class.negative-value]="parseAddonValue(savedAddonValues[clientName]) < 0">{{ parseAddonValue(savedAddonValues[clientName]) | number:'2.0-0' }}</span>
+            <span class="summary-value" [class.negative-value]="(savedAddonValues[clientName] || 0) < 0">{{ (savedAddonValues[clientName] || 0) | number:'2.0-0' }}</span>
           </td>
         </tr>
       </ng-container>
@@ -222,11 +222,11 @@
           <td style="text-align: left;">{{ clientName.key }}</td>
           <td style="text-align: left;">
             <input
-              type="text"
+              type="number"
               class="addon-input"
               [(ngModel)]="addonValues[clientName.key]"
               placeholder="0">
-            <button mat-icon-button (click)="addonValues[clientName.key] = ''; saveAddon(clientName.key)" style="vertical-align: middle;" title="Clear Add-On">
+            <button mat-icon-button (click)="addonValues[clientName.key] = 0; saveAddon(clientName.key)" style="vertical-align: middle;" title="Clear Add-On">
               <mat-icon style="font-size: 16px; color: #dc2626;">delete</mat-icon>
             </button>
           </td>
@@ -249,10 +249,10 @@
       </ng-container>
       <!-- Manual addon clients (no bets) in loss table -->
       <ng-container *ngFor="let clientName of manualAddonClients">
-        <tr *ngIf="parseAddonValue(savedAddonValues[clientName]) < 0">
+        <tr *ngIf="(savedAddonValues[clientName] || 0) < 0">
           <td style="text-align: left;">{{ clientName }}</td>
           <td style="text-align: left;">
-            <input type="text" class="addon-input" [(ngModel)]="addonValues[clientName]" placeholder="0">
+            <input type="number" class="addon-input" [(ngModel)]="addonValues[clientName]" placeholder="0">
             <button mat-icon-button (click)="deleteManualAddonClient(clientName)" style="vertical-align: middle;" title="Remove">
               <mat-icon style="font-size: 16px; color: #dc2626;">delete</mat-icon>
             </button>
@@ -260,7 +260,7 @@
           <td style="text-align: left;">-</td>
           <td style="text-align: left;">-</td>
           <td style="text-align: left;">
-            <span class="summary-value negative-value">{{ parseAddonValue(savedAddonValues[clientName]) | number:'2.0-0' }}</span>
+            <span class="summary-value negative-value">{{ (savedAddonValues[clientName] || 0) | number:'2.0-0' }}</span>
           </td>
         </tr>
       </ng-container>

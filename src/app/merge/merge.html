@@ -44,7 +44,7 @@
       style="min-width: 0; width: 65px;"
     />
     <input
-      type="text"
+      type="number"
       [(ngModel)]="newAddonValue"
       placeholder="0"
       style="width: 65px; padding: 0.5rem 0.5rem; border: 1px solid #d1d5db; border-radius: 6px; font-size: 0.95rem; min-width: 0;"
@@ -175,7 +175,7 @@
           <td style="text-align: left;">{{ clientName.key }}</td>
           <ng-container *ngFor="let meeting of selectedMeetings">
             <td style="text-align: right;">
-              <input type="text" class="addon-input" [(ngModel)]="addonValues[clientName.key][meeting]" placeholder="0">
+              <input type="number" class="addon-input" [(ngModel)]="addonValues[clientName.key][meeting]" placeholder="0">
             </td>
             <td style="text-align: right;">
               <span class="summary-value" style="font-weight: 400;" [ngClass]="getProfitLossForGroupByMeeting(clientName.value, meeting) >= 0 ? 'positive-value' : 'negative-value'">
@@ -201,11 +201,11 @@
           </td>
           <ng-container *ngFor="let meeting of selectedMeetings">
             <td style="text-align: right;">
-              <input type="text" class="addon-input" [(ngModel)]="addonValues[clientName][meeting]" placeholder="0">
+              <input type="number" class="addon-input" [(ngModel)]="addonValues[clientName][meeting]" placeholder="0">
             </td>
             <td style="text-align: right;">
-              <span class="summary-value" style="font-weight: 400;" [ngClass]="parseAddonValue(savedAddonValues[clientName]?.[meeting]) >= 0 ? 'positive-value' : 'negative-value'">
-                {{ parseAddonValue(savedAddonValues[clientName]?.[meeting]) >= 0 ? (parseAddonValue(savedAddonValues[clientName]?.[meeting]) | number:'2.0-0') : ('-' + (Math.abs(parseAddonValue(savedAddonValues[clientName]?.[meeting])) | number:'2.0-0')) }}
+              <span class="summary-value" style="font-weight: 400;" [ngClass]="(savedAddonValues[clientName]?.[meeting] || 0) >= 0 ? 'positive-value' : 'negative-value'">
+                {{ (savedAddonValues[clientName]?.[meeting] || 0) >= 0 ? ((savedAddonValues[clientName]?.[meeting] || 0) | number:'2.0-0') : ('-' + (Math.abs(savedAddonValues[clientName]?.[meeting] || 0) | number:'2.0-0')) }}
               </span>
             </td>
           </ng-container>
@@ -252,7 +252,7 @@
           <td style="text-align: left;">{{ clientName.key }}</td>
           <ng-container *ngFor="let meeting of selectedMeetings">
             <td style="text-align: right;">
-              <input type="text" class="addon-input" [(ngModel)]="addonValues[clientName.key][meeting]" placeholder="0">
+              <input type="number" class="addon-input" [(ngModel)]="addonValues[clientName.key][meeting]" placeholder="0">
             </td>
             <td style="text-align: right;">
               <span class="summary-value" style="font-weight: 400;" [ngClass]="getProfitLossForGroupByMeeting(clientName.value, meeting) >= 0 ? 'positive-value' : 'negative-value'">
@@ -278,11 +278,11 @@
           </td>
           <ng-container *ngFor="let meeting of selectedMeetings">
             <td style="text-align: right;">
-              <input type="text" class="addon-input" [(ngModel)]="addonValues[clientName][meeting]" placeholder="0">
+              <input type="number" class="addon-input" [(ngModel)]="addonValues[clientName][meeting]" placeholder="0">
             </td>
             <td style="text-align: right;">
-              <span class="summary-value" style="font-weight: 400;" [ngClass]="parseAddonValue(savedAddonValues[clientName]?.[meeting]) >= 0 ? 'positive-value' : 'negative-value'">
-                {{ parseAddonValue(savedAddonValues[clientName]?.[meeting]) >= 0 ? (parseAddonValue(savedAddonValues[clientName]?.[meeting]) | number:'2.0-0') : ('-' + (Math.abs(parseAddonValue(savedAddonValues[clientName]?.[meeting])) | number:'2.0-0')) }}
+              <span class="summary-value" style="font-weight: 400;" [ngClass]="(savedAddonValues[clientName]?.[meeting] || 0) >= 0 ? 'positive-value' : 'negative-value'">
+                {{ (savedAddonValues[clientName]?.[meeting] || 0) >= 0 ? ((savedAddonValues[clientName]?.[meeting] || 0) | number:'2.0-0') : ('-' + (Math.abs(savedAddonValues[clientName]?.[meeting] || 0) | number:'2.0-0')) }}
               </span>
             </td>
           </ng-container>
