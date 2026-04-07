@@ -253,13 +253,12 @@ export class Dataentry implements OnInit {
       return;
     }
 
+    this.resetForm();
     this.http.post(`${this.apiUrl}/bets`, betData).subscribe({
       next: async () => {
-        this.resetForm();
         this.meetingData.invalidateBets();
         await this.loadRecentClients();
         await this.loadLastBet();
-
        },
       error: (error) => {
         console.error('Error saving bet:', error);

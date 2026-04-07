@@ -242,10 +242,20 @@ export class Single implements OnInit {
         // Accumulate stakes for this horse
         stakesByHorse.set(b.horseNum, (stakesByHorse.get(b.horseNum) || 0) + (b.stake || 0));
         
-        // Add to books
+        // Add to books with Rule 4 adjustments
         const horse = horsesMap.get(b.horseNum);
         if (horse && b.books) {
-          horse.books += b.books;
+          let adjustedBooks = b.books;
+          const betTime = new Date(b.betTime || b.createdAt);
+          
+          // Apply rule4 deductions that occurred AFTER this bet was placed
+          rule4Info.forEach(r4 => {
+            if (betTime < r4.date) {
+              adjustedBooks = adjustedBooks * (1 - r4.deduct / 100);
+            }
+          });
+          
+          horse.books += adjustedBooks;
         }
       });
       
@@ -381,16 +391,17 @@ export class Single implements OnInit {
     }
     
     if (typeof navigator !== 'undefined' && !navigator.onLine) {
+      this.resetBetslipForm();
       this.offlineStore.queueBet(betData).then(async () => {
         this.meetingData.addLocalBet(betData);
         this.cachedBets = await this.meetingData.getBets();
         this.loadRaceData();
         alert('Saved offline. Will sync when online.');
-        setTimeout(() => this.resetBetslipForm(), 0);
       });
       return;
     }
 
+    this.resetBetslipForm();
     this.http.post(`${this.apiUrl}/bets`, betData).subscribe({
       next: async () => {
         this.meetingData.invalidateBets();
@@ -401,7 +412,6 @@ export class Single implements OnInit {
         this.cachedBets = await this.meetingData.getBets();
         
         this.loadRaceData();
-        setTimeout(() => this.resetBetslipForm(), 0);
       },
       error: (error) => {
         console.error('Error saving bet:', error);

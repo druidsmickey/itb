@@ -246,9 +246,19 @@ export class Chart implements OnInit {
           // Accumulate stakes for this horse
           stakesByHorse.set(bet.horseNum, (stakesByHorse.get(bet.horseNum) || 0) + (bet.stake || 0));
           
-          // Add to books
+          // Add to books with Rule 4 adjustments
           if (betHorse && bet.books) {
-            betHorse.books += bet.books;
+            let adjustedBooks = bet.books;
+            const betTime = new Date(bet.betTime || bet.createdAt);
+            
+            // Apply rule4 deductions that occurred AFTER this bet was placed
+            rule4Deductions.forEach(r4 => {
+              if (betTime < r4.date) {
+                adjustedBooks = adjustedBooks * (1 - r4.deduct / 100);
+              }
+            });
+            
+            betHorse.books += adjustedBooks;
           }
         });
         
@@ -403,15 +413,16 @@ export class Chart implements OnInit {
     }
     
     if (typeof navigator !== 'undefined' && !navigator.onLine) {
+      this.resetBetslipForm();
       this.offlineStore.queueBet(betData).then(async () => {
         this.meetingData.addLocalBet(betData);
         await this.loadData();
         alert('Saved offline. Will sync when online.');
-        this.resetBetslipForm();
       });
       return;
     }
 
+    this.resetBetslipForm();
     this.http.post(`${this.apiUrl}/bets`, betData).subscribe({
       next: async () => {
         this.meetingData.invalidateBets();
@@ -420,7 +431,6 @@ export class Chart implements OnInit {
         
         // Reload data
         await this.loadData();
-        this.resetBetslipForm();
       },
       error: (error) => {
         console.error('Error saving bet:', error);
