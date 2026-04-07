@@ -137,7 +137,7 @@ export class Reports implements OnInit {
     if (!this.manualAddonClients.includes(name)) {
       this.manualAddonClients.push(name);
     }
-    const value = this.newAddonValue ?? 0;
+    const value = Number(this.newAddonValue ?? 0);
     this.addonValues[name] = value;
     this.savedAddonValues[name] = value;
     this.newAddonClientName = '';
@@ -156,7 +156,7 @@ export class Reports implements OnInit {
   }
 
   saveAddon(clientName: string) {
-    const stake = this.addonValues[clientName] ?? 0;
+    const stake = Number(this.addonValues[clientName] ?? 0);
     this.savedAddonValues[clientName] = stake;
     this.http.post(`${this.apiUrl}/reports/addon`, {
       meetingName: this.meetingName,
@@ -170,7 +170,7 @@ export class Reports implements OnInit {
   }
 
   getAdjustedPLForGroup(bets: any[], clientName: string): number {
-    return this.getProfitLossForGroup(bets) + (this.savedAddonValues[clientName] || 0);
+    return this.getProfitLossForGroup(bets) + Number(this.savedAddonValues[clientName] || 0);
   }
 
   buildDateMaps() {
@@ -392,7 +392,7 @@ export class Reports implements OnInit {
   getNetTotalTaxAmount(): number {
     let total = 0;
     this.clientReports.forEach((report, clientName) => {
-      const adj = report.profitLoss + (this.savedAddonValues[clientName] || 0);
+      const adj = report.profitLoss + Number(this.savedAddonValues[clientName] || 0);
       if (adj >= 0) total += report.totalTax;
     });
     return total;
@@ -401,11 +401,11 @@ export class Reports implements OnInit {
   getNetTotalProfitLoss(): number {
     let total = 0;
     this.clientReports.forEach((report, clientName) => {
-      const adj = report.profitLoss + (this.savedAddonValues[clientName] || 0);
+      const adj = report.profitLoss + Number(this.savedAddonValues[clientName] || 0);
       if (adj >= 0) total += adj;
     });
     this.manualAddonClients.forEach(clientName => {
-      const adj = this.savedAddonValues[clientName] || 0;
+      const adj = Number(this.savedAddonValues[clientName] || 0);
       if (adj >= 0) total += adj;
     });
     return total;
@@ -414,7 +414,7 @@ export class Reports implements OnInit {
   getNetTotalTaxAmountLoss(): number {
     let total = 0;
     this.clientReports.forEach((report, clientName) => {
-      const adj = report.profitLoss + (this.savedAddonValues[clientName] || 0);
+      const adj = report.profitLoss + Number(this.savedAddonValues[clientName] || 0);
       if (adj < 0) total += report.totalTax;
     });
     return total;
@@ -423,11 +423,11 @@ export class Reports implements OnInit {
   getNetTotalLoss(): number {
     let total = 0;
     this.clientReports.forEach((report, clientName) => {
-      const adj = report.profitLoss + (this.savedAddonValues[clientName] || 0);
+      const adj = report.profitLoss + Number(this.savedAddonValues[clientName] || 0);
       if (adj < 0) total += adj;
     });
     this.manualAddonClients.forEach(clientName => {
-      const adj = this.savedAddonValues[clientName] || 0;
+      const adj = Number(this.savedAddonValues[clientName] || 0);
       if (adj < 0) total += adj;
     });
     return total;
@@ -436,7 +436,7 @@ export class Reports implements OnInit {
   getNetTotalProfitLossUnadjusted(): number {
     let total = 0;
     this.clientReports.forEach((report, clientName) => {
-      const adj = report.profitLoss + (this.savedAddonValues[clientName] || 0);
+      const adj = report.profitLoss + Number(this.savedAddonValues[clientName] || 0);
       if (adj >= 0) total += (report.profitLoss - report.totalTax);
     });
     return total;
@@ -445,7 +445,7 @@ export class Reports implements OnInit {
   getNetTotalLossUnadjusted(): number {
     let total = 0;
     this.clientReports.forEach((report, clientName) => {
-      const adj = report.profitLoss + (this.savedAddonValues[clientName] || 0);
+      const adj = report.profitLoss + Number(this.savedAddonValues[clientName] || 0);
       if (adj < 0) total += (report.profitLoss - report.totalTax);
     });
     return total;
