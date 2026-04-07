@@ -77,8 +77,8 @@
     </thead>
     <tbody>
       <ng-container *ngFor="let clientName of getFilteredGroupedItemsArray(); trackBy: trackClientKey; let isFirst = first">
-        <ng-container *ngFor="let item of clientName.value; trackBy: trackItemId; let isFirstBet = first">
-          <tr *ngIf="!item.cancelled" class="client-bet-row" [class.client-first-row]="isFirstBet && !isFirst">
+        <ng-container *ngFor="let item of clientName.value; trackBy: trackItemId">
+          <tr *ngIf="!item.cancelled" class="client-bet-row" [class.client-first-row]="!isFirst && isFirstVisibleBet(clientName.value, item)">
             <td [ngClass]="{ 'pur-bet-type': (item.stake || 0) < 0 }">{{ item.meetingName }}</td>
             <td [ngClass]="{ 'pur-bet-type': (item.stake || 0) < 0 }">{{ clientName.key }}</td>
             <td [ngClass]="{ 'pur-bet-type': (item.stake || 0) < 0 }">
@@ -126,7 +126,7 @@
               </ng-container>
             </td>
             <td style="text-align: right;">
-              <ng-container *ngIf="isWinner(item)">
+              <ng-container *ngIf="!isSpecial(item) && !isRule4(item) && isWinner(item)">
                 <span class="payout-value-red">{{ getAdjustedPayout(item) | number:'1.0-0' }}</span>
               </ng-container>
             </td>
@@ -171,14 +171,14 @@
     </thead>
     <tbody>
       <ng-container *ngFor="let clientName of getFilteredGroupedItemsArray(); trackBy: trackClientKey">
-        <tr *ngIf="getAdjustedPLForGroup(clientName.value, clientName.key) > 0">
+        <tr *ngIf="getAdjustedPLForGroup(clientName.value, clientName.key) >= 0">
           <td style="text-align: left;">{{ clientName.key }}</td>
           <ng-container *ngFor="let meeting of selectedMeetings">
             <td style="text-align: right;">
               <input type="number" class="addon-input" [(ngModel)]="addonValues[clientName.key][meeting]" placeholder="0">
             </td>
             <td style="text-align: right;">
-              <span class="summary-value" [ngClass]="getProfitLossForGroupByMeeting(clientName.value, meeting) >= 0 ? 'positive-value' : 'negative-value'">
+              <span class="summary-value" style="font-weight: 400;" [ngClass]="getProfitLossForGroupByMeeting(clientName.value, meeting) >= 0 ? 'positive-value' : 'negative-value'">
                 {{ getProfitLossForGroupByMeeting(clientName.value, meeting) >= 0 ? (getProfitLossForGroupByMeeting(clientName.value, meeting) | number:'2.0-0') : ('-' + (Math.abs(getProfitLossForGroupByMeeting(clientName.value, meeting)) | number:'2.0-0')) }}
               </span>
             </td>
@@ -204,7 +204,7 @@
               <input type="number" class="addon-input" [(ngModel)]="addonValues[clientName][meeting]" placeholder="0">
             </td>
             <td style="text-align: right;">
-              <span class="summary-value" [ngClass]="(savedAddonValues[clientName]?.[meeting] || 0) >= 0 ? 'positive-value' : 'negative-value'">
+              <span class="summary-value" style="font-weight: 400;" [ngClass]="(savedAddonValues[clientName]?.[meeting] || 0) >= 0 ? 'positive-value' : 'negative-value'">
                 {{ (savedAddonValues[clientName]?.[meeting] || 0) >= 0 ? ((savedAddonValues[clientName]?.[meeting] || 0) | number:'2.0-0') : ('-' + (Math.abs(savedAddonValues[clientName]?.[meeting] || 0) | number:'2.0-0')) }}
               </span>
             </td>
@@ -217,17 +217,17 @@
         </tr>
       </ng-container>
       <tr style="background: #e5e7eb;">
-        <td style="text-align: left; font-weight: 600;">Net Total:</td>
+        <td style="text-align: left; font-weight: 400;">Net Total:</td>
         <ng-container *ngFor="let meeting of selectedMeetings">
           <td></td>
-          <td style="text-align: right; font-weight: 600;">
-            <span class="summary-value" [ngClass]="getNetTotalProfitLossByMeetingRaw(meeting) >= 0 ? 'positive-value' : 'negative-value'">
+          <td style="text-align: right;">
+            <span class="summary-value" style="font-weight: 400;" [ngClass]="getNetTotalProfitLossByMeetingRaw(meeting) >= 0 ? 'positive-value' : 'negative-value'">
               {{ getNetTotalProfitLossByMeetingRaw(meeting) >= 0 ? (getNetTotalProfitLossByMeetingRaw(meeting) | number:'2.0-0') : ('-' + (Math.abs(getNetTotalProfitLossByMeetingRaw(meeting)) | number:'2.0-0')) }}
             </span>
           </td>
         </ng-container>
         <td style="text-align: right; font-weight: 700;">
-          <span class="summary-value" [ngClass]="getNetTotalProfitLoss() >= 0 ? 'positive-value' : 'negative-value'">
+          <span class="summary-value" style="font-weight: 700;" [ngClass]="getNetTotalProfitLoss() >= 0 ? 'positive-value' : 'negative-value'">
             {{ getNetTotalProfitLoss() >= 0 ? (getNetTotalProfitLoss() | number:'2.0-0') : ('-' + (Math.abs(getNetTotalProfitLoss()) | number:'2.0-0')) }}
           </span>
         </td>
@@ -255,7 +255,7 @@
               <input type="number" class="addon-input" [(ngModel)]="addonValues[clientName.key][meeting]" placeholder="0">
             </td>
             <td style="text-align: right;">
-              <span class="summary-value" [ngClass]="getProfitLossForGroupByMeeting(clientName.value, meeting) >= 0 ? 'positive-value' : 'negative-value'">
+              <span class="summary-value" style="font-weight: 400;" [ngClass]="getProfitLossForGroupByMeeting(clientName.value, meeting) >= 0 ? 'positive-value' : 'negative-value'">
                 {{ getProfitLossForGroupByMeeting(clientName.value, meeting) >= 0 ? (getProfitLossForGroupByMeeting(clientName.value, meeting) | number:'2.0-0') : ('-' + (Math.abs(getProfitLossForGroupByMeeting(clientName.value, meeting)) | number:'2.0-0')) }}
               </span>
             </td>
@@ -281,7 +281,7 @@
               <input type="number" class="addon-input" [(ngModel)]="addonValues[clientName][meeting]" placeholder="0">
             </td>
             <td style="text-align: right;">
-              <span class="summary-value" [ngClass]="(savedAddonValues[clientName]?.[meeting] || 0) >= 0 ? 'positive-value' : 'negative-value'">
+              <span class="summary-value" style="font-weight: 400;" [ngClass]="(savedAddonValues[clientName]?.[meeting] || 0) >= 0 ? 'positive-value' : 'negative-value'">
                 {{ (savedAddonValues[clientName]?.[meeting] || 0) >= 0 ? ((savedAddonValues[clientName]?.[meeting] || 0) | number:'2.0-0') : ('-' + (Math.abs(savedAddonValues[clientName]?.[meeting] || 0) | number:'2.0-0')) }}
               </span>
             </td>
@@ -294,17 +294,17 @@
         </tr>
       </ng-container>
       <tr style="background: #e5e7eb;">
-        <td style="text-align: left; font-weight: 600;">Net Total:</td>
+        <td style="text-align: left; font-weight: 400;">Net Total:</td>
         <ng-container *ngFor="let meeting of selectedMeetings">
           <td></td>
-          <td style="text-align: right; font-weight: 600;">
-            <span class="summary-value" [ngClass]="getNetTotalLossByMeetingRaw(meeting) >= 0 ? 'positive-value' : 'negative-value'">
+          <td style="text-align: right;">
+            <span class="summary-value" style="font-weight: 400;" [ngClass]="getNetTotalLossByMeetingRaw(meeting) >= 0 ? 'positive-value' : 'negative-value'">
               {{ getNetTotalLossByMeetingRaw(meeting) >= 0 ? (getNetTotalLossByMeetingRaw(meeting) | number:'2.0-0') : ('-' + (Math.abs(getNetTotalLossByMeetingRaw(meeting)) | number:'2.0-0')) }}
             </span>
           </td>
         </ng-container>
         <td style="text-align: right; font-weight: 700;">
-          <span class="summary-value" [ngClass]="getNetTotalLoss() >= 0 ? 'positive-value' : 'negative-value'">
+          <span class="summary-value" style="font-weight: 700;" [ngClass]="getNetTotalLoss() >= 0 ? 'positive-value' : 'negative-value'">
             {{ getNetTotalLoss() >= 0 ? (getNetTotalLoss() | number:'2.0-0') : ('-' + (Math.abs(getNetTotalLoss()) | number:'2.0-0')) }}
           </span>
         </td>

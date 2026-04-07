@@ -50,8 +50,8 @@
     </thead>
     <tbody>
       <ng-container *ngFor="let clientName of filteredGroupedItems | keyvalue:compareKeysAsc; trackBy: trackClientKey; let isFirst = first">
-        <ng-container *ngFor="let item of clientName.value; trackBy: trackItemId; let isFirstBet = first">
-          <tr *ngIf="!item.cancelled" class="client-bet-row" [class.client-first-row]="isFirstBet && !isFirst">
+        <ng-container *ngFor="let item of clientName.value; trackBy: trackItemId">
+          <tr *ngIf="!item.cancelled" class="client-bet-row" [class.client-first-row]="!isFirst && isFirstVisibleBet(clientName.value, item)">
             <td [ngClass]="{ 'pur-bet-type': (item.stake || 0) < 0 }">{{ clientName.key }}</td>
             <td [ngClass]="{ 'pur-bet-type': (item.stake || 0) < 0 }">
               {{ item.date | date:'dd/MM' }}<br>
@@ -98,7 +98,7 @@
               </ng-container>
             </td>
             <td style="text-align: right;">
-              <ng-container *ngIf="isWinner(item)">
+              <ng-container *ngIf="!isSpecial(item) && !isRule4(item) && isWinner(item)">
                 <span class="payout-value-red">{{ getAdjustedPayout(item) | number:'1.0-0' }}</span>
               </ng-container>
             </td>
@@ -112,7 +112,7 @@
           <td colspan="8" class="client-summary" style="text-align: left;">
             Stake: <span class="summary-value">{{ getStakeAmountForGroup(clientName.value) | number:'2.0-0' }}</span>
             &nbsp;|&nbsp;
-            Tax: <span class="summary-value">{{ getTaxAmountForGroup(clientName.value) | number:'2.0-0' }}</span>
+            Tax: <span class="summary-value" [class.negative-value]="getTaxAmountForGroup(clientName.value) < 0">{{ getTaxAmountForGroup(clientName.value) | number:'2.0-0' }}</span>
             &nbsp;|&nbsp;
             P/L: 
             <span 
@@ -138,7 +138,7 @@
     </thead>
     <tbody>
       <ng-container *ngFor="let clientName of filteredGroupedItems | keyvalue:compareKeysAsc; trackBy: trackClientKey">
-        <tr *ngIf="getAdjustedPLForGroup(clientName.value, clientName.key) > 0">
+        <tr *ngIf="getAdjustedPLForGroup(clientName.value, clientName.key) >= 0">
           <td style="text-align: left;">{{ clientName.key }}</td>
           <td style="text-align: left;">
             <input
@@ -146,19 +146,22 @@
               class="addon-input"
               [(ngModel)]="addonValues[clientName.key]"
               placeholder="0">
+            <button mat-icon-button (click)="addonValues[clientName.key] = 0; saveAddon(clientName.key)" style="vertical-align: middle;" title="Clear Add-On">
+              <mat-icon style="font-size: 16px; color: #dc2626;">delete</mat-icon>
+            </button>
           </td>
           <td style="text-align: left;">
-            <span class="summary-value" [class.negative-value]="getTaxAmountForGroup(clientName.value) < 0">
+            <span class="summary-value" style="font-weight: 400;" [class.negative-value]="getTaxAmountForGroup(clientName.value) < 0">
               {{ getTaxAmountForGroup(clientName.value) | number:'2.0-0' }}
             </span>
           </td>
           <td style="text-align: left;">
-            <span class="summary-value" [class.negative-value]="getProfitLossForGroup(clientName.value) < 0">
-              {{ getProfitLossForGroup(clientName.value) | number:'2.0-0' }}
+            <span class="summary-value" style="font-weight: 400;" [class.negative-value]="(getProfitLossForGroup(clientName.value) - getTaxAmountForGroup(clientName.value)) < 0">
+              {{ (getProfitLossForGroup(clientName.value) - getTaxAmountForGroup(clientName.value)) | number:'2.0-0' }}
             </span>
           </td>
           <td style="text-align: left;">
-            <span class="summary-value" [class.negative-value]="getAdjustedPLForGroup(clientName.value, clientName.key) < 0">
+            <span class="summary-value" style="font-weight: 700;" [class.negative-value]="getAdjustedPLForGroup(clientName.value, clientName.key) < 0">
               {{ getAdjustedPLForGroup(clientName.value, clientName.key) | number:'2.0-0' }}
             </span>
           </td>
@@ -182,20 +185,20 @@
         </tr>
       </ng-container>
       <tr>
-        <td style="text-align: left; font-weight: 600;">Net Total:</td>
+        <td style="text-align: left; font-weight: 400;">Net Total:</td>
         <td></td>
         <td style="text-align: left;">
-          <span class="summary-value" [class.negative-value]="getNetTotalTaxAmount() < 0">
+          <span class="summary-value" style="font-weight: 400;" [class.negative-value]="getNetTotalTaxAmount() < 0">
             {{ getNetTotalTaxAmount() | number:'2.0-0' }}
           </span>
         </td>
         <td style="text-align: left;">
-          <span class="summary-value" [class.negative-value]="getNetTotalProfitLossUnadjusted() < 0">
+          <span class="summary-value" style="font-weight: 400;" [class.negative-value]="getNetTotalProfitLossUnadjusted() < 0">
             {{ getNetTotalProfitLossUnadjusted() | number:'2.0-0' }}
           </span>
         </td>
-        <td style="text-align: left;">
-          <span class="summary-value" [class.negative-value]="getNetTotalProfitLoss() < 0">
+        <td style="text-align: left; font-weight: 700;">
+          <span class="summary-value" style="font-weight: 700;" [class.negative-value]="getNetTotalProfitLoss() < 0">
             {{ getNetTotalProfitLoss() | number:'2.0-0' }}
           </span>
         </td>
@@ -223,19 +226,22 @@
               class="addon-input"
               [(ngModel)]="addonValues[clientName.key]"
               placeholder="0">
+            <button mat-icon-button (click)="addonValues[clientName.key] = 0; saveAddon(clientName.key)" style="vertical-align: middle;" title="Clear Add-On">
+              <mat-icon style="font-size: 16px; color: #dc2626;">delete</mat-icon>
+            </button>
           </td>
           <td style="text-align: left;">
-            <span class="summary-value" [class.negative-value]="getTaxAmountForGroup(clientName.value) < 0">
+            <span class="summary-value" style="font-weight: 400;" [class.negative-value]="getTaxAmountForGroup(clientName.value) < 0">
               {{ getTaxAmountForGroup(clientName.value) | number:'2.0-0' }}
             </span>
           </td>
           <td style="text-align: left;">
-            <span class="summary-value" [class.negative-value]="getProfitLossForGroup(clientName.value) < 0">
-              {{ getProfitLossForGroup(clientName.value) | number:'2.0-0' }}
+            <span class="summary-value" style="font-weight: 400;" [class.negative-value]="(getProfitLossForGroup(clientName.value) - getTaxAmountForGroup(clientName.value)) < 0">
+              {{ (getProfitLossForGroup(clientName.value) - getTaxAmountForGroup(clientName.value)) | number:'2.0-0' }}
             </span>
           </td>
           <td style="text-align: left;">
-            <span class="summary-value" [class.negative-value]="getAdjustedPLForGroup(clientName.value, clientName.key) < 0">
+            <span class="summary-value" style="font-weight: 700;" [class.negative-value]="getAdjustedPLForGroup(clientName.value, clientName.key) < 0">
               {{ getAdjustedPLForGroup(clientName.value, clientName.key) | number:'2.0-0' }}
             </span>
           </td>
@@ -259,20 +265,20 @@
         </tr>
       </ng-container>
       <tr>
-        <td style="text-align: left; font-weight: 600;">Net Total:</td>
+        <td style="text-align: left; font-weight: 400;">Net Total:</td>
         <td></td>
         <td style="text-align: left;">
-          <span class="summary-value" [class.negative-value]="getNetTotalTaxAmountLoss() < 0">
+          <span class="summary-value" style="font-weight: 400;" [class.negative-value]="getNetTotalTaxAmountLoss() < 0">
             {{ getNetTotalTaxAmountLoss() | number:'2.0-0' }}
           </span>
         </td>
         <td style="text-align: left;">
-          <span class="summary-value" [class.negative-value]="getNetTotalLossUnadjusted() < 0">
+          <span class="summary-value" style="font-weight: 400;" [class.negative-value]="getNetTotalLossUnadjusted() < 0">
             {{ getNetTotalLossUnadjusted() | number:'2.0-0' }}
           </span>
         </td>
-        <td style="text-align: left;">
-          <span class="summary-value" [class.negative-value]="getNetTotalLoss() < 0">
+        <td style="text-align: left; font-weight: 700;">
+          <span class="summary-value" style="font-weight: 700;" [class.negative-value]="getNetTotalLoss() < 0">
             {{ getNetTotalLoss() | number:'2.0-0' }}
           </span>
         </td>

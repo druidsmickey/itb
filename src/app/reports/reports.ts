@@ -393,7 +393,7 @@ export class Reports implements OnInit {
     let total = 0;
     this.clientReports.forEach((report, clientName) => {
       const adj = report.profitLoss + (this.savedAddonValues[clientName] || 0);
-      if (adj > 0) total += report.totalTax;
+      if (adj >= 0) total += report.totalTax;
     });
     return total;
   }
@@ -402,11 +402,11 @@ export class Reports implements OnInit {
     let total = 0;
     this.clientReports.forEach((report, clientName) => {
       const adj = report.profitLoss + (this.savedAddonValues[clientName] || 0);
-      if (adj > 0) total += adj;
+      if (adj >= 0) total += adj;
     });
     this.manualAddonClients.forEach(clientName => {
       const adj = this.savedAddonValues[clientName] || 0;
-      if (adj > 0) total += adj;
+      if (adj >= 0) total += adj;
     });
     return total;
   }
@@ -424,11 +424,11 @@ export class Reports implements OnInit {
     let total = 0;
     this.clientReports.forEach((report, clientName) => {
       const adj = report.profitLoss + (this.savedAddonValues[clientName] || 0);
-      if (adj < 0) total += Math.abs(adj);
+      if (adj < 0) total += adj;
     });
     this.manualAddonClients.forEach(clientName => {
       const adj = this.savedAddonValues[clientName] || 0;
-      if (adj < 0) total += Math.abs(adj);
+      if (adj < 0) total += adj;
     });
     return total;
   }
@@ -437,7 +437,7 @@ export class Reports implements OnInit {
     let total = 0;
     this.clientReports.forEach((report, clientName) => {
       const adj = report.profitLoss + (this.savedAddonValues[clientName] || 0);
-      if (adj > 0) total += report.profitLoss;
+      if (adj >= 0) total += (report.profitLoss - report.totalTax);
     });
     return total;
   }
@@ -446,7 +446,7 @@ export class Reports implements OnInit {
     let total = 0;
     this.clientReports.forEach((report, clientName) => {
       const adj = report.profitLoss + (this.savedAddonValues[clientName] || 0);
-      if (adj < 0) total += Math.abs(report.profitLoss);
+      if (adj < 0) total += (report.profitLoss - report.totalTax);
     });
     return total;
   }
@@ -548,6 +548,11 @@ export class Reports implements OnInit {
 
   hasActiveBets(bets: any[]): boolean {
     return bets.some(bet => !bet.cancelled && !this.shouldIgnoreBet(bet));
+  }
+
+  isFirstVisibleBet(bets: any[], currentBet: any): boolean {
+    const firstNonCancelled = bets.find(bet => !bet.cancelled);
+    return firstNonCancelled === currentBet;
   }
 
   getWinnerCountForRace(raceNum: number): number {

@@ -422,6 +422,7 @@
   /* Keep client groups together on same page */
   .client-first-row {
     page-break-before: always;
+    border-top: 3px solid #3b82f6 !important;
   }
 
   .client-bet-row,

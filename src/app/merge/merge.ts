@@ -527,11 +527,11 @@ export class Merge implements OnInit {
     let total = 0;
     this.groupedItems.forEach((bets, clientName) => {
       const adj = this.getAdjustedPLForGroup(bets, clientName);
-      if (adj > 0) total += adj;
+      if (adj >= 0) total += adj;
     });
     this.manualAddonClients.forEach(clientName => {
       const adj = this.getAdjustedPLForGroup([], clientName);
-      if (adj > 0) total += adj;
+      if (adj >= 0) total += adj;
     });
     return total;
   }
@@ -561,7 +561,7 @@ export class Merge implements OnInit {
   getNetTotalProfitLossByMeeting(meetingName: string): number {
     let total = 0;
     this.groupedItems.forEach((bets, clientName) => {
-      if (this.getAdjustedPLForGroup(bets, clientName) > 0) {
+      if (this.getAdjustedPLForGroup(bets, clientName) >= 0) {
         total += this.getAdjustedPLForGroupByMeeting(bets, clientName, meetingName);
       }
     });
@@ -571,13 +571,13 @@ export class Merge implements OnInit {
   getNetTotalProfitLossByMeetingRaw(meetingName: string): number {
     let total = 0;
     this.groupedItems.forEach((bets, clientName) => {
-      if (this.getAdjustedPLForGroup(bets, clientName) > 0) {
+      if (this.getAdjustedPLForGroup(bets, clientName) >= 0) {
         total += this.getProfitLossForGroupByMeeting(bets, meetingName);
       }
     });
     // Also include manual addon clients that have positive total
     this.manualAddonClients.forEach(clientName => {
-      if (this.getAdjustedPLForGroup([], clientName) > 0) {
+      if (this.getAdjustedPLForGroup([], clientName) >= 0) {
         total += (this.savedAddonValues[clientName]?.[meetingName] || 0);
       }
     });
@@ -695,6 +695,11 @@ export class Merge implements OnInit {
 
   hasActiveBets(bets: any[]): boolean {
     return bets.some(bet => !bet.cancelled && !this.shouldIgnoreBet(bet));
+  }
+
+  isFirstVisibleBet(bets: any[], currentBet: any): boolean {
+    const firstNonCancelled = bets.find(bet => !bet.cancelled);
+    return firstNonCancelled === currentBet;
   }
 
   getWinnerCountForRace(bet: any): number {

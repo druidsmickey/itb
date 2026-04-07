@@ -127,6 +127,10 @@
   border-bottom: none;
 }
 
+.client-first-row {
+  border-top: 3px solid #3b82f6 !important;
+}
+
 .client-summary-row {
   background: #eff6ff !important;
   font-weight: 500;
