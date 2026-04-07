@@ -22,7 +22,7 @@
       (keydown.enter)="addManualAddonClient()"
     />
     <input
-      type="number"
+      type="text" inputmode="decimal" pattern="-?[0-9]*"
       [(ngModel)]="newAddonValue"
       placeholder="0"
       style="width: 65px; min-width: 0; padding: 0.5rem 0.5rem; border: 1px solid #d1d5db; border-radius: 6px; font-size: 0.95rem;"
@@ -142,7 +142,7 @@
           <td style="text-align: left;">{{ clientName.key }}</td>
           <td style="text-align: left;">
             <input
-              type="number"
+              type="text" inputmode="decimal" pattern="-?[0-9]*"
               class="addon-input"
               [(ngModel)]="addonValues[clientName.key]"
               placeholder="0">
@@ -222,7 +222,7 @@
           <td style="text-align: left;">{{ clientName.key }}</td>
           <td style="text-align: left;">
             <input
-              type="number"
+              type="text" inputmode="decimal" pattern="-?[0-9]*"
               class="addon-input"
               [(ngModel)]="addonValues[clientName.key]"
               placeholder="0">
