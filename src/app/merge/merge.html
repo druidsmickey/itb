@@ -175,7 +175,7 @@
           <td style="text-align: left;">{{ clientName.key }}</td>
           <ng-container *ngFor="let meeting of selectedMeetings">
             <td style="text-align: right;">
-              <input type="number" class="addon-input" [(ngModel)]="addonValues[clientName.key][meeting]" placeholder="0">
+              <input type="text" inputmode="numeric" pattern="-?[0-9]*" class="addon-input" [(ngModel)]="addonValues[clientName.key][meeting]" placeholder="0">
             </td>
             <td style="text-align: right;">
               <span class="summary-value" style="font-weight: 400;" [ngClass]="getProfitLossForGroupByMeeting(clientName.value, meeting) >= 0 ? 'positive-value' : 'negative-value'">
@@ -201,7 +201,7 @@
           </td>
           <ng-container *ngFor="let meeting of selectedMeetings">
             <td style="text-align: right;">
-              <input type="number" class="addon-input" [(ngModel)]="addonValues[clientName][meeting]" placeholder="0">
+              <input type="text" inputmode="numeric" pattern="-?[0-9]*" class="addon-input" [(ngModel)]="addonValues[clientName][meeting]" placeholder="0">
             </td>
             <td style="text-align: right;">
               <span class="summary-value" style="font-weight: 400;" [ngClass]="(savedAddonValues[clientName]?.[meeting] || 0) >= 0 ? 'positive-value' : 'negative-value'">
@@ -252,7 +252,7 @@
           <td style="text-align: left;">{{ clientName.key }}</td>
           <ng-container *ngFor="let meeting of selectedMeetings">
             <td style="text-align: right;">
-              <input type="number" class="addon-input" [(ngModel)]="addonValues[clientName.key][meeting]" placeholder="0">
+              <input type="text" inputmode="numeric" pattern="-?[0-9]*" class="addon-input" [(ngModel)]="addonValues[clientName.key][meeting]" placeholder="0">
             </td>
             <td style="text-align: right;">
               <span class="summary-value" style="font-weight: 400;" [ngClass]="getProfitLossForGroupByMeeting(clientName.value, meeting) >= 0 ? 'positive-value' : 'negative-value'">
@@ -278,7 +278,7 @@
           </td>
           <ng-container *ngFor="let meeting of selectedMeetings">
             <td style="text-align: right;">
-              <input type="number" class="addon-input" [(ngModel)]="addonValues[clientName][meeting]" placeholder="0">
+              <input type="text" inputmode="numeric" pattern="-?[0-9]*" class="addon-input" [(ngModel)]="addonValues[clientName][meeting]" placeholder="0">
             </td>
             <td style="text-align: right;">
               <span class="summary-value" style="font-weight: 400;" [ngClass]="(savedAddonValues[clientName]?.[meeting] || 0) >= 0 ? 'positive-value' : 'negative-value'">
