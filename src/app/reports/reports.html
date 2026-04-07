@@ -22,7 +22,7 @@
       (keydown.enter)="addManualAddonClient()"
     />
     <input
-      type="text" inputmode="decimal" pattern="-?[0-9]*"
+      type="text" inputmode="numeric" pattern="-?[0-9]*"
       [(ngModel)]="newAddonValue"
       placeholder="0"
       style="width: 65px; min-width: 0; padding: 0.5rem 0.5rem; border: 1px solid #d1d5db; border-radius: 6px; font-size: 0.95rem;"
@@ -142,7 +142,7 @@
           <td style="text-align: left;">{{ clientName.key }}</td>
           <td style="text-align: left;">
             <input
-              type="text" inputmode="decimal" pattern="-?[0-9]*"
+              type="text" inputmode="numeric" pattern="-?[0-9]*"
               class="addon-input"
               [(ngModel)]="addonValues[clientName.key]"
               placeholder="0">
@@ -172,7 +172,7 @@
         <tr *ngIf="(savedAddonValues[clientName] || 0) >= 0">
           <td style="text-align: left;">{{ clientName }}</td>
           <td style="text-align: left;">
-            <input type="number" class="addon-input" [(ngModel)]="addonValues[clientName]" placeholder="0">
+            <input type="text" inputmode="decimal" pattern="-?[0-9]*" class="addon-input" [(ngModel)]="addonValues[clientName]" placeholder="0">
             <button mat-icon-button (click)="deleteManualAddonClient(clientName)" style="vertical-align: middle;" title="Remove">
               <mat-icon style="font-size: 16px; color: #dc2626;">delete</mat-icon>
             </button>
@@ -222,7 +222,7 @@
           <td style="text-align: left;">{{ clientName.key }}</td>
           <td style="text-align: left;">
             <input
-              type="text" inputmode="decimal" pattern="-?[0-9]*"
+              type="text" inputmode="numeric" pattern="-?[0-9]*"
               class="addon-input"
               [(ngModel)]="addonValues[clientName.key]"
               placeholder="0">
