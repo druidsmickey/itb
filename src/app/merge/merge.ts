@@ -36,11 +36,11 @@ export class Merge implements OnInit {
   
   showSummaryOnly: boolean = false;
   filterClientName: string = '';
-  addonValues: { [clientName: string]: { [meetingName: string]: number } } = {};
-  savedAddonValues: { [clientName: string]: { [meetingName: string]: number } } = {};
+  addonValues: { [clientName: string]: { [meetingName: string]: string } } = {};
+  savedAddonValues: { [clientName: string]: { [meetingName: string]: string } } = {};
   manualAddonClients: string[] = [];
   newAddonClientName: string = '';
-  newAddonValue: number = 0;
+  newAddonValue: string = '';
   newAddonMeeting: string = '';
   
   // Cache for special and rule4 dates per meeting
@@ -51,6 +51,12 @@ export class Merge implements OnInit {
 
   ngOnInit() {
     this.loadMeetings();
+  }
+
+  parseAddonValue(value: string | undefined): number {
+    if (!value || value.trim() === '') return 0;
+    const parsed = parseFloat(value);
+    return isNaN(parsed) ? 0 : parsed;
   }
 
   async loadMeetings() {
@@ -294,13 +300,13 @@ export class Merge implements OnInit {
     if (!this.addonValues[name]) this.addonValues[name] = {};
     if (!this.savedAddonValues[name]) this.savedAddonValues[name] = {};
     const meeting = this.newAddonMeeting || this.selectedMeetings[0];
-    const value = this.newAddonValue ?? 0;
+    const value = this.newAddonValue || '';
     this.addonValues[name][meeting] = value;
     this.savedAddonValues[name][meeting] = value;
-    this.http.post(`${this.apiUrl}/reports/addon`, { meetingName: meeting, clientName: name, stake: value })
+    this.http.post(`${this.apiUrl}/reports/addon`, { meetingName: meeting, clientName: name, stake: this.parseAddonValue(value) })
       .subscribe({ error: (e) => console.error('Error saving add-on:', e) });
     this.newAddonClientName = '';
-    this.newAddonValue = 0;
+    this.newAddonValue = '';
     this.cdr.detectChanges();
   }
 
@@ -329,10 +335,10 @@ export class Merge implements OnInit {
   }
 
   saveAddon(clientName: string, meetingName: string) {
-    const stake = this.addonValues[clientName]?.[meetingName] ?? 0;
+    const value = this.addonValues[clientName]?.[meetingName] || '';
     if (!this.savedAddonValues[clientName]) this.savedAddonValues[clientName] = {};
-    this.savedAddonValues[clientName][meetingName] = stake;
-    this.http.post(`${this.apiUrl}/reports/addon`, { meetingName, clientName, stake }).subscribe({
+    this.savedAddonValues[clientName][meetingName] = value;
+    this.http.post(`${this.apiUrl}/reports/addon`, { meetingName, clientName, stake: this.parseAddonValue(value) }).subscribe({
       error: (e) => console.error('Error saving add-on:', e),
       complete: () => this.cdr.detectChanges()
     });
@@ -341,14 +347,14 @@ export class Merge implements OnInit {
 
   getAdjustedPLForGroup(bets: any[], clientName: string): number {
     const addonTotal = this.selectedMeetings.reduce(
-      (sum, m) => sum + (this.savedAddonValues[clientName]?.[m] || 0), 0
+      (sum, m) => sum + this.parseAddonValue(this.savedAddonValues[clientName]?.[m]), 0
     );
     return this.getProfitLossForGroup(bets) + addonTotal;
   }
 
   getAdjustedPLForGroupByMeeting(bets: any[], clientName: string, meetingName: string): number {
     return this.getProfitLossForGroupByMeeting(bets, meetingName)
-      + (this.savedAddonValues[clientName]?.[meetingName] || 0);
+      + this.parseAddonValue(this.savedAddonValues[clientName]?.[meetingName]);
   }
 
   isHorseSpecial(param: any): boolean {
@@ -578,7 +584,7 @@ export class Merge implements OnInit {
     // Also include manual addon clients that have positive total
     this.manualAddonClients.forEach(clientName => {
       if (this.getAdjustedPLForGroup([], clientName) >= 0) {
-        total += (this.savedAddonValues[clientName]?.[meetingName] || 0);
+        total += this.parseAddonValue(this.savedAddonValues[clientName]?.[meetingName]);
       }
     });
     return total;
@@ -604,7 +610,7 @@ export class Merge implements OnInit {
     // Also include manual addon clients that have negative total
     this.manualAddonClients.forEach(clientName => {
       if (this.getAdjustedPLForGroup([], clientName) < 0) {
-        total += (this.savedAddonValues[clientName]?.[meetingName] || 0);
+        total += this.parseAddonValue(this.savedAddonValues[clientName]?.[meetingName]);
       }
     });
     return total;
