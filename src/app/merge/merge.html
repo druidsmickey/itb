@@ -94,7 +94,7 @@
               </small>
             </td>
             <td [ngClass]="{ 'pur-bet-type': (item.stake || 0) < 0 }" style="text-align: center;">
-              {{ (item.stake || 0) >= 0 ? 'S' : 'P' }}
+              {{ (item.stake || 0) >= 0 ? 'S' : 'P' }} ({{ item.tax || 0 }}%)
             </td>
             <td [ngClass]="{ 'pur-bet-type': (item.stake || 0) < 0 }" style="text-align: right;">
               {{ item.f500 && item.f500 !== 0 ? (item.books | number:'1.0-0') : '-' }}
