@@ -245,20 +245,21 @@ export class Dataentry implements OnInit {
     }
     
     if (typeof navigator !== 'undefined' && !navigator.onLine) {
+      this.resetForm();
       this.offlineStore.queueBet(betData).then(() => {
         this.meetingData.addLocalBet(betData);
         alert('Saved offline. Will sync when online.');
-        setTimeout(() => this.resetForm(), 0);
       });
       return;
     }
 
     this.http.post(`${this.apiUrl}/bets`, betData).subscribe({
       next: async () => {
+        this.resetForm();
         this.meetingData.invalidateBets();
         await this.loadRecentClients();
         await this.loadLastBet();
-        setTimeout(() => this.resetForm(), 0);
+
        },
       error: (error) => {
         console.error('Error saving bet:', error);
