@@ -288,8 +288,8 @@
 
   <p>
     <strong>Net Profit:</strong>
-    <span [ngClass]="{'negative-value': (getNetTotalProfitLoss() - getNetTotalLoss()) < 0}">
-      {{ (getNetTotalProfitLoss() - getNetTotalLoss()) | number:'2.0-0' }}
+    <span [ngClass]="{'negative-value': (getNetTotalProfitLoss() + getNetTotalLoss()) < 0}">
+      {{ (getNetTotalProfitLoss() + getNetTotalLoss()) | number:'2.0-0' }}
     </span>
   </p>
 
