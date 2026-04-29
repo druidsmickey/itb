@@ -63,12 +63,12 @@
             <mat-error *ngIf="oddsError">{{ oddsError }}</mat-error>
           </mat-form-field>
 
-          <mat-form-field appearance="outline" style="flex: 1.5; min-width: 50px;">
+          <mat-form-field appearance="outline" style="flex: 1.5; min-width: 60px;">
             <mat-label>Name</mat-label>
             <input matInput [(ngModel)]="clientName" (input)="onClientNameInput()">
           </mat-form-field>
 
-          <mat-form-field appearance="outline" style="flex: 0.8; min-width: 40px;">
+          <mat-form-field appearance="outline" style="flex: 0.8; min-width: 30px;">
             <mat-label>Tax</mat-label>
             <input matInput type="number" [(ngModel)]="tax">
           </mat-form-field>
