@@ -126,46 +126,37 @@ export class Reports implements OnInit {
     this.cdr.detectChanges();
   }
 
+  deleteAddon(clientName: string) {
+    if (!confirm(`Delete Add-On for "${clientName}"?`)) return;
+    delete this.addonValues[clientName];
+    delete this.savedAddonValues[clientName];
+    this.http.delete(`${this.apiUrl}/reports/addon/${encodeURIComponent(this.meetingName)}/${encodeURIComponent(clientName)}`)
+      .subscribe({ error: (e) => console.error('Error deleting add-on:', e) });
+    this.cdr.detectChanges();
+  }
+
   addManualAddonClient() {
     const name = this.newAddonClientName.trim().toUpperCase();
     if (!name) return;
-    if (this.groupedItems.has(name)) {
-      alert(`"${name}" already exists in the summary list.`);
-      this.newAddonClientName = '';
-      return;
-    }
-    if (!this.manualAddonClients.includes(name)) {
+    
+    const value = Number(this.newAddonValue ?? 0);
+    
+    // If client doesn't have bets, add to manual addon list
+    if (!this.groupedItems.has(name) && !this.manualAddonClients.includes(name)) {
       this.manualAddonClients.push(name);
     }
-    const value = Number(this.newAddonValue ?? 0);
+    
     this.addonValues[name] = value;
     this.savedAddonValues[name] = value;
     this.newAddonClientName = '';
     this.newAddonValue = 0;
+    
     // Persist to DB immediately
     this.http.post(`${this.apiUrl}/reports/addon`, {
       meetingName: this.meetingName,
       clientName: name,
       stake: value
     }).subscribe({ error: (e) => console.error('Error saving add-on:', e) });
-    this.cdr.detectChanges();
-  }
-
-  saveAllAddons() {
-    Object.keys(this.addonValues).forEach(clientName => this.saveAddon(clientName));
-  }
-
-  saveAddon(clientName: string) {
-    const stake = Number(this.addonValues[clientName] ?? 0);
-    this.savedAddonValues[clientName] = stake;
-    this.http.post(`${this.apiUrl}/reports/addon`, {
-      meetingName: this.meetingName,
-      clientName,
-      stake
-    }).subscribe({
-      error: (e) => console.error('Error saving add-on:', e),
-      complete: () => this.cdr.detectChanges()
-    });
     this.cdr.detectChanges();
   }
 

@@ -283,22 +283,29 @@ export class Merge implements OnInit {
   addManualAddonClient() {
     const name = this.newAddonClientName.trim().toUpperCase();
     if (!name) return;
-    if (this.groupedItems.has(name)) {
-      alert(`"${name}" already exists in the summary list.`);
-      this.newAddonClientName = '';
+    
+    const meeting = this.newAddonMeeting || this.selectedMeetings[0];
+    if (!meeting) {
+      alert('Please select a meeting');
       return;
     }
-    if (!this.manualAddonClients.includes(name)) {
+    
+    const value = Number(this.newAddonValue ?? 0);
+    
+    // If client doesn't have bets, add to manual addon list
+    if (!this.groupedItems.has(name) && !this.manualAddonClients.includes(name)) {
       this.manualAddonClients.push(name);
     }
+    
     if (!this.addonValues[name]) this.addonValues[name] = {};
     if (!this.savedAddonValues[name]) this.savedAddonValues[name] = {};
-    const meeting = this.newAddonMeeting || this.selectedMeetings[0];
-    const value = Number(this.newAddonValue ?? 0);
+    
     this.addonValues[name][meeting] = value;
     this.savedAddonValues[name][meeting] = value;
+    
     this.http.post(`${this.apiUrl}/reports/addon`, { meetingName: meeting, clientName: name, stake: value })
       .subscribe({ error: (e) => console.error('Error saving add-on:', e) });
+    
     this.newAddonClientName = '';
     this.newAddonValue = 0;
     this.cdr.detectChanges();
@@ -317,25 +324,16 @@ export class Merge implements OnInit {
     this.cdr.detectChanges();
   }
 
-  saveAllAddons() {
-    const allClients = [...Array.from(this.groupedItems.keys()), ...this.manualAddonClients];
-    this.selectedMeetings.forEach(meetingName => {
-      allClients.forEach(clientName => {
-        if (this.addonValues[clientName]?.[meetingName] != null) {
-          this.saveAddon(clientName, meetingName);
-        }
-      });
-    });
-  }
-
-  saveAddon(clientName: string, meetingName: string) {
-    const stake = Number(this.addonValues[clientName]?.[meetingName] ?? 0);
-    if (!this.savedAddonValues[clientName]) this.savedAddonValues[clientName] = {};
-    this.savedAddonValues[clientName][meetingName] = stake;
-    this.http.post(`${this.apiUrl}/reports/addon`, { meetingName, clientName, stake }).subscribe({
-      error: (e) => console.error('Error saving add-on:', e),
-      complete: () => this.cdr.detectChanges()
-    });
+  deleteAddon(clientName: string, meetingName: string) {
+    if (!confirm(`Delete Add-On for "${clientName}" in meeting "${meetingName}"?`)) return;
+    if (this.addonValues[clientName]) {
+      delete this.addonValues[clientName][meetingName];
+    }
+    if (this.savedAddonValues[clientName]) {
+      delete this.savedAddonValues[clientName][meetingName];
+    }
+    this.http.delete(`${this.apiUrl}/reports/addon/${encodeURIComponent(meetingName)}/${encodeURIComponent(clientName)}`)
+      .subscribe({ error: (e) => console.error('Error deleting add-on:', e) });
     this.cdr.detectChanges();
   }
 

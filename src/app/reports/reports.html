@@ -130,7 +130,7 @@
     <thead>
       <tr>
         <th style="text-align: left;">Client</th>
-        <th style="text-align: left;">Add-On <button class="addon-save-btn" (click)="saveAllAddons()">Save</button></th>
+        <th style="text-align: left;">Add-On</th>
         <th style="text-align: left;">Tax</th>
         <th style="text-align: left;">Collect</th>
         <th style="text-align: left;">Total</th>
@@ -141,12 +141,8 @@
         <tr *ngIf="getAdjustedPLForGroup(clientName.value, clientName.key) >= 0">
           <td style="text-align: left;">{{ clientName.key }}</td>
           <td style="text-align: left;">
-            <input
-              type="text" inputmode="numeric" pattern="-?[0-9]*"
-              class="addon-input"
-              [(ngModel)]="addonValues[clientName.key]"
-              placeholder="0">
-            <button mat-icon-button (click)="addonValues[clientName.key] = 0; saveAddon(clientName.key)" style="vertical-align: middle;" title="Clear Add-On">
+            <span class="summary-value" [class.negative-value]="(savedAddonValues[clientName.key] || 0) < 0">{{ (savedAddonValues[clientName.key] || 0) | number:'1.0-0' }}</span>
+            <button mat-icon-button (click)="deleteAddon(clientName.key)" style="vertical-align: middle;" title="Delete Add-On" *ngIf="savedAddonValues[clientName.key] != null">
               <mat-icon style="font-size: 16px; color: #dc2626;">delete</mat-icon>
             </button>
           </td>
@@ -172,8 +168,8 @@
         <tr *ngIf="(savedAddonValues[clientName] || 0) >= 0">
           <td style="text-align: left;">{{ clientName }}</td>
           <td style="text-align: left;">
-            <input type="text" inputmode="decimal" pattern="-?[0-9]*" class="addon-input" [(ngModel)]="addonValues[clientName]" placeholder="0">
-            <button mat-icon-button (click)="deleteManualAddonClient(clientName)" style="vertical-align: middle;" title="Remove">
+            <span class="summary-value" [class.negative-value]="(savedAddonValues[clientName] || 0) < 0">{{ (savedAddonValues[clientName] || 0) | number:'1.0-0' }}</span>
+            <button mat-icon-button (click)="deleteManualAddonClient(clientName)" style="vertical-align: middle;" title="Delete Add-On">
               <mat-icon style="font-size: 16px; color: #dc2626;">delete</mat-icon>
             </button>
           </td>
@@ -210,7 +206,7 @@
     <thead>
       <tr>
         <th style="text-align: left;">Client</th>
-        <th style="text-align: left;">Add-On <button class="addon-save-btn" (click)="saveAllAddons()">Save</button></th>
+        <th style="text-align: left;">Add-On</th>
         <th style="text-align: left;">Tax</th>
         <th style="text-align: left;">Pay</th>
         <th style="text-align: left;">Total</th>
@@ -221,12 +217,8 @@
         <tr *ngIf="getAdjustedPLForGroup(clientName.value, clientName.key) < 0">
           <td style="text-align: left;">{{ clientName.key }}</td>
           <td style="text-align: left;">
-            <input
-              type="text" inputmode="numeric" pattern="-?[0-9]*"
-              class="addon-input"
-              [(ngModel)]="addonValues[clientName.key]"
-              placeholder="0">
-            <button mat-icon-button (click)="addonValues[clientName.key] = 0; saveAddon(clientName.key)" style="vertical-align: middle;" title="Clear Add-On">
+            <span class="summary-value" [class.negative-value]="(savedAddonValues[clientName.key] || 0) < 0">{{ (savedAddonValues[clientName.key] || 0) | number:'1.0-0' }}</span>
+            <button mat-icon-button (click)="deleteAddon(clientName.key)" style="vertical-align: middle;" title="Delete Add-On" *ngIf="savedAddonValues[clientName.key] != null">
               <mat-icon style="font-size: 16px; color: #dc2626;">delete</mat-icon>
             </button>
           </td>
@@ -252,8 +244,8 @@
         <tr *ngIf="(savedAddonValues[clientName] || 0) < 0">
           <td style="text-align: left;">{{ clientName }}</td>
           <td style="text-align: left;">
-            <input type="number" class="addon-input" [(ngModel)]="addonValues[clientName]" placeholder="0">
-            <button mat-icon-button (click)="deleteManualAddonClient(clientName)" style="vertical-align: middle;" title="Remove">
+            <span class="summary-value" [class.negative-value]="(savedAddonValues[clientName] || 0) < 0">{{ (savedAddonValues[clientName] || 0) | number:'1.0-0' }}</span>
+            <button mat-icon-button (click)="deleteManualAddonClient(clientName)" style="vertical-align: middle;" title="Delete Add-On">
               <mat-icon style="font-size: 16px; color: #dc2626;">delete</mat-icon>
             </button>
           </td>
