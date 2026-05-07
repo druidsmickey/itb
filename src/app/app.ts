@@ -11,12 +11,13 @@ import { Params } from './params/params';
 import { Init } from './init/init';
 import { Merge } from './merge/merge';
 import { ChangePassword } from './change-password/change-password';
+import { Email } from './email/email';
 import { AuthService } from './services/auth.service';
 import { OfflineSyncService } from './services/offline-sync.service';
 
 @Component({
   selector: 'app-root',
-  imports: [CommonModule, MatTabsModule, Dataentry, Single, Chart, ListdataComponent, Winners, Reports, Params, Init, Merge, ChangePassword],
+  imports: [CommonModule, MatTabsModule, Dataentry, Single, Chart, ListdataComponent, Winners, Reports, Params, Init, Merge, ChangePassword, Email],
   templateUrl: './app.html',
   styleUrl: './app.css'
 })
