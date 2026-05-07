@@ -1,7 +1,7 @@
 <mat-sidenav-container class="chart-container">
   <mat-sidenav #sidenav position="end" mode="over" class="betslip-sidenav" [autoFocus]="false" (closed)="resetBetslipForm()">
     <div class="betslip-content" [class.purchase-bg]="betType === 'purchase'">
-      <h3>R {{ selectedRaceNum }} - <span class="horse-name-display" style="color: red; font-size: 1.35rem; font-weight: bold; background-color: #d0f5d7; padding: 8px; border-radius: 4px;">#&nbsp;&nbsp;{{ betslipSelectedHorseName }}</span></h3>
+      <h3>R {{ selectedRaceNum }} - <span class="horse-name-display" style="color: red; font-size: 1.35rem; font-weight: bold; background-color: #d0f5d7; padding: 3px; border-radius: 4px;">#&nbsp;&nbsp;{{ betslipSelectedHorseName }}</span></h3>
      
       <div class="form-grid">
         <!-- Horse Selection -->
@@ -46,7 +46,7 @@
         </div>
 
         <!-- All Inputs in One Row -->
-        <div class="full-width" style="display: flex; gap: 4px; flex-wrap: nowrap; padding: 5px 0;">
+        <div class="full-width" style="display: flex; gap: 4px; flex-wrap: nowrap; padding: 3px 0;">
           <mat-form-field appearance="outline" style="flex: 1; min-width: 100px;">
             <mat-label>{{ oddsType === 'odds' ? 'Stakes' : 'Books' }}</mat-label>
             <input matInput type="number" [(ngModel)]="stakeBooks" 
@@ -75,12 +75,12 @@
         </div>
 
         <!-- Action Buttons and Last Bet -->
-        <div class="full-width" style="display: flex; gap: 8px; align-items: stretch; flex-direction: column; padding: 5px 0;">
+        <div class="full-width" style="display: flex; gap: 8px; align-items: stretch; flex-direction: column; padding: 3px 0;">
           <div style="display: flex; gap: 8px;">
             <button mat-raised-button color="primary" (click)="saveBet()" style="flex: 1; height: 80px; font-size: 1.5rem; background-color: #1976d2; color: white;">
               Save Bet
             </button>
-            <div *ngIf="lastBet" [style.background-color]="lastBet.stake < 0 || lastBet.books < 0 ? '#fee2e2' : '#f0f9ff'" style="flex: 1; padding: 8px; border: 1px solid #ddd; border-radius: 4px; display: flex; flex-direction: column; justify-content: center;">
+            <div *ngIf="lastBet" [style.background-color]="lastBet.stake < 0 || lastBet.books < 0 ? '#fee2e2' : '#f0f9ff'" style="flex: 1; padding: 3px; border: 1px solid #ddd; border-radius: 4px; display: flex; flex-direction: column; justify-content: center;">
               <div style="font-size: 0.975rem; line-height: 1.4;" [style.text-decoration]="lastBet.cancelled ? 'line-through' : 'none'">
                 <div><strong style="color: black;">{{ lastBet.clientName }}</strong></div>
                 <div><strong style="color: rgb(34, 110, 35)">R{{ lastBet.raceNum }} H{{ lastBet.horseNum }} {{ lastBet.horseName }}</strong></div>
