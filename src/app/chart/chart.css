@@ -112,7 +112,8 @@ mat-sidenav-content {
 }
 
 .client-btn {
-  background: white !important;
+  background-color: #1976d2 !important;
+  color: white !important;
 }
 
 
