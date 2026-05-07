@@ -1,7 +1,12 @@
 <mat-sidenav-container class="sidenav-container">
   <mat-sidenav #sidenav mode="over" position="end" class="betslip-sidenav" [ngClass]="{'purchase-bg': betType === 'purchase'}" (closed)="resetBetslipForm()">
     <div class="betslip-content">
-      <h3>R {{ selectedRaceNum }} - <span class="horse-name-display" style="color: red; font-size: 1.35rem; font-weight: bold; background-color: #d0f5d7; padding: 8px; border-radius: 4px;">#&nbsp;&nbsp;{{ betslipSelectedHorseName }}</span></h3>
+      <div style="display: flex; align-items: center; margin-bottom: 16px;">
+        <h3 style="flex: 0 0 auto; margin: 0;">R {{ selectedRaceNum }}</h3>
+        <div style="flex: 1; text-align: center;">
+          <span class="horse-name-display" style="color: red; font-size: 1.35rem; font-weight: bold; background-color: #d0f5d7; padding: 8px; border-radius: 4px;">#&nbsp;&nbsp;{{ betslipSelectedHorseName }}</span>
+        </div>
+      </div>
       
       <div class="form-grid">
         <!-- Horse Selection -->
@@ -74,8 +79,8 @@
         </div>
 
         <!-- Action Buttons and Last Bet -->
-        <div class="full-width" style="display: flex; gap: 8px; align-items: stretch; flex-direction: column; padding: 3px 0;">
-          <div style="display: flex; gap: 8px;">
+        <div class="full-width" style="display: flex; gap: 19px; align-items: stretch; flex-direction: column; padding: 19px 0;">
+          <div style="display: flex; gap: 19px;">
             <button mat-raised-button color="primary" (click)="saveBet()" style="flex: 1; height: 80px; font-size: 1.5rem; background-color: #1976d2; color: white;">
               Save Bet
             </button>

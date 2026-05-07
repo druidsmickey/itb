@@ -154,9 +154,9 @@ h2 {
   line-height: 32px;
   text-transform: none;
   white-space: nowrap;
-  background-color: #1976d2 !important;
-  color: white !important;
-  border-color: #1976d2 !important;
+  background-color: #40E0D0 !important;
+  color: black !important;
+  border-color: #40E0D0 !important;
 }
 
 .recent-client-btn .mdc-button__label {
