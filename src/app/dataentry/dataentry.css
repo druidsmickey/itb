@@ -126,10 +126,11 @@ h2 {
 }
 
 .horse-name-display {
-  font-size: 1.5rem;
+  font-size: 2rem;
   color: red;
   font-weight: 500;
   min-height: 20px;
+  text-align: center;
 }
 
 .client-btn {
@@ -177,7 +178,7 @@ h2 {
   }
   
   .horse-name-display {
-    font-size: 1.5rem;
+    font-size: 2rem;
   }
 }
 
