@@ -46,7 +46,7 @@
         </div>
 
         <!-- All Inputs in One Row -->
-        <div class="full-width" style="display: flex; gap: 4px; flex-wrap: nowrap; padding: 8px 0;">
+        <div class="full-width" style="display: flex; gap: 4px; flex-wrap: nowrap; padding: 5px 0;">
           <mat-form-field appearance="outline" style="flex: 1; min-width: 100px;">
             <mat-label>{{ oddsType === 'odds' ? 'Stakes' : 'Books' }}</mat-label>
             <input matInput type="number" [(ngModel)]="stakeBooks" 
@@ -75,7 +75,7 @@
         </div>
 
         <!-- Action Buttons and Last Bet -->
-        <div class="full-width" style="display: flex; gap: 8px; align-items: stretch; flex-direction: column; padding: 8px 0;">
+        <div class="full-width" style="display: flex; gap: 8px; align-items: stretch; flex-direction: column; padding: 5px 0;">
           <div style="display: flex; gap: 8px;">
             <button mat-raised-button color="primary" (click)="saveBet()" style="flex: 1; height: 80px; font-size: 1.5rem; background-color: #1976d2; color: white;">
               Save Bet
