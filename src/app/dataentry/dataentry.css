@@ -134,7 +134,8 @@ h2 {
 }
 
 .client-btn {
-  background: white !important;
+  background-color: #40E0D0 !important;
+  color: black !important;
 }
 
 .recent-clients-wrap {

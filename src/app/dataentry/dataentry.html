@@ -59,9 +59,10 @@
       <div class="full-width recent-clients-wrap" *ngIf="recentClients.length > 0">
         <button 
           *ngFor="let client of recentClients" 
-          mat-stroked-button
+          mat-mini-fab
           (click)="selectClient(client)"
-          class="client-btn recent-client-btn">
+          class="client-btn"
+          style="font-size: 17px; padding: 0px 23px; min-width: 0; height: 38px;">
           {{ client }}
         </button>
       </div>
