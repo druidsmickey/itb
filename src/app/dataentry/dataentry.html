@@ -56,7 +56,7 @@
       </div>
       
       <!-- Recent Clients -->
-      <div class="full-width recent-clients-wrap" *ngIf="recentClients.length > 0">
+      <div class="full-width" *ngIf="recentClients.length > 0" style="display: flex; gap: 5px; flex-wrap: wrap; margin-bottom: 5px;">
         <button 
           *ngFor="let client of recentClients" 
           mat-mini-fab

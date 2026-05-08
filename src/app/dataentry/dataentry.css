@@ -140,9 +140,9 @@ h2 {
 
 .recent-clients-wrap {
   display: flex;
-  gap: 6px;
+  gap: 5px;
   flex-wrap: wrap;
-  margin-bottom: 2px;
+  margin-bottom: 5px;
 }
 
 .recent-client-btn {
