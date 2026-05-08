@@ -43,7 +43,7 @@
       </div>
       <div class="horse-name-display" style="background-color: #d0f5d7; padding: 8px; border-radius: 4px;">#&nbsp;&nbsp;{{ selectedHorseName }}</div>
       <!-- Bet Option Selection -->
-      <div class="full-width" style="display: flex; gap: 8px; flex-wrap: nowrap; align-items: center; flex-direction: row !important;">
+      <div class="full-width" style="display: flex; gap: 8px; flex-wrap: nowrap; align-items: center; margin-bottom: 5px; flex-direction: row !important;">
         <!-- <label>Bet Type:</label> -->
         <mat-radio-group [(ngModel)]="betType" class="radio-buttons" style="flex-shrink: 0;">
           <mat-radio-button value="sales">Sales</mat-radio-button>
@@ -68,7 +68,7 @@
       </div>
 
             <!-- All Inputs in One Row -->
-      <div class="full-width" style="display: flex; gap: 4px; flex-wrap: wrap;">
+      <div class="full-width" style="display: flex; gap: 4px; flex-wrap: wrap;; margin-bottom: 5px">
         <mat-form-field appearance="outline" style="flex: 1; min-width: 100px;">
           <mat-label>{{ oddsType === 'odds' ? 'Stakes' : 'Books' }}</mat-label>
           <input matInput type="number" [(ngModel)]="stakeBooks" 
