@@ -1,10 +1,10 @@
 <mat-sidenav-container class="sidenav-container">
   <mat-sidenav #sidenav mode="over" position="end" class="betslip-sidenav" [ngClass]="{'purchase-bg': betType === 'purchase'}" (closed)="resetBetslipForm()">
     <div class="betslip-content">
-      <div style="display: flex; align-items: center; margin-bottom: 16px;">
+      <div style="display: flex; align-items: center; margin-bottom: 10px;">
         <h3 style="flex: 0 0 auto; margin: 0;">R {{ selectedRaceNum }}</h3>
         <div style="flex: 1; text-align: center;">
-          <span class="horse-name-display" style="color: red; font-size: 1.35rem; font-weight: bold; background-color: #d0f5d7; padding: 8px; border-radius: 4px;">#&nbsp;&nbsp;{{ betslipSelectedHorseName }}</span>
+          <span class="horse-name-display" style="color: red; font-size: 1.35rem; font-weight: bold; background-color: #d0f5d7; padding: 3px; border-radius: 4px;">#&nbsp;&nbsp;{{ betslipSelectedHorseName }}</span>
         </div>
       </div>
       
