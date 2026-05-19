@@ -2,67 +2,6 @@
   <h2>WhatsApp Messaging</h2>
 
   <mat-tab-group>
-    <!-- Connection Tab -->
-    <mat-tab label="Connection">
-      <div class="tab-content">
-        <mat-card>
-          <mat-card-header>
-            <mat-card-title>WhatsApp Status</mat-card-title>
-          </mat-card-header>
-          <mat-card-content>
-            <div class="status-indicator">
-              <span class="status-dot" [style.background-color]="getStatusColor()"></span>
-              <span class="status-text">{{ getStatusText() }}</span>
-            </div>
-
-            @if (statusMessage()) {
-              <div class="status-message">{{ statusMessage() }}</div>
-            }
-
-            @if (loading()) {
-              <div class="loading-container">
-                <mat-progress-spinner mode="indeterminate" diameter="40"></mat-progress-spinner>
-              </div>
-            }
-
-            @if (status().qrCode) {
-              <div class="qr-code-container">
-                <h3>Scan this QR code with WhatsApp:</h3>
-                <img [src]="'https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=' + status().qrCode" 
-                     alt="WhatsApp QR Code" 
-                     class="qr-code">
-                <p class="qr-instructions">
-                  1. Open WhatsApp on your phone<br>
-                  2. Go to Settings > Linked Devices<br>
-                  3. Tap "Link a Device"<br>
-                  4. Scan this QR code
-                </p>
-              </div>
-            }
-          </mat-card-content>
-          <mat-card-actions>
-            @if (!status().isReady) {
-              <button mat-raised-button color="primary" 
-                      (click)="initializeWhatsApp()"
-                      [disabled]="loading()">
-                Initialize WhatsApp
-              </button>
-            }
-            @if (status().isReady) {
-              <button mat-raised-button color="warn" 
-                      (click)="disconnectWhatsApp()"
-                      [disabled]="loading()">
-                Disconnect
-              </button>
-            }
-            <button mat-raised-button (click)="checkStatus()">
-              Refresh Status
-            </button>
-          </mat-card-actions>
-        </mat-card>
-      </div>
-    </mat-tab>
-
     <!-- Send Message Tab -->
     <mat-tab label="Send Message">
       <div class="tab-content">
@@ -159,6 +98,69 @@
             </mat-card-content>
           </mat-card>
         }
+      </div>
+    </mat-tab>
+
+    <!-- Connection Tab -->
+    <mat-tab label="Connection">
+      <div class="tab-content">
+        <mat-card>
+          <mat-card-header>
+            <mat-card-title>WhatsApp Status</mat-card-title>
+          </mat-card-header>
+          <mat-card-content>
+            <div class="status-indicator">
+              <span class="status-dot" [style.background-color]="getStatusColor()"></span>
+              <span class="status-text">{{ getStatusText() }}</span>
+            </div>
+
+            @if (statusMessage()) {
+              <div class="status-message">{{ statusMessage() }}</div>
+            }
+
+            @if (loading()) {
+              <div class="loading-container">
+                <mat-progress-spinner mode="indeterminate" diameter="40"></mat-progress-spinner>
+              </div>
+            }
+          </mat-card-content>
+          <mat-card-actions>
+            @if (!status().isReady) {
+              <button mat-raised-button color="primary" 
+                      (click)="initializeWhatsApp()"
+                      [disabled]="loading()">
+                Initialize WhatsApp
+              </button>
+            }
+            @if (status().isReady) {
+              <button mat-raised-button color="warn" 
+                      (click)="disconnectWhatsApp()"
+                      [disabled]="loading()">
+                Disconnect
+              </button>
+            }
+            <button mat-raised-button (click)="checkStatus()">
+              Refresh Status
+            </button>
+          </mat-card-actions>
+          
+          @if (status().qrCode) {
+            <mat-card-content>
+              <div class="qr-code-container">
+                <h3>Scan this QR code with WhatsApp:</h3>
+                <img [src]="'https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=' + status().qrCode" 
+                     alt="WhatsApp QR Code" 
+                     class="qr-code">
+                <p class="qr-instructions">
+                  1. Open WhatsApp on your phone<br>
+                  2. Go to Settings > Linked Devices<br>
+                  3. Tap "Link a Device"<br>
+                  4. Scan this QR code
+                </p>
+              </div>
+            </mat-card-content>
+          }
+        </mat-card>
       </div>
     </mat-tab>
 
