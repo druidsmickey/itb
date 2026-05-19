@@ -194,6 +194,34 @@ export class Whatsapp implements OnInit, OnDestroy {
     });
   }
 
+  protected testPuppeteer() {
+    this.loading.set(true);
+    this.statusMessage.set('Testing if Chrome can launch on server...');
+    
+    this.http.get<any>(`${this.apiUrl}/api/whatsapp/test-puppeteer`).subscribe({
+      next: (response) => {
+        this.loading.set(false);
+        if (response.success) {
+          this.statusMessage.set(`✅ Server test passed! Browser: ${response.browserVersion}`);
+        } else {
+          this.statusMessage.set(`❌ Server test failed: ${response.error}`);
+        }
+      },
+      error: (error) => {
+        this.loading.set(false);
+        const errorMsg = error.error?.error || error.message;
+        const suggestion = error.error?.suggestion || '';
+        this.statusMessage.set(`❌ Test failed: ${errorMsg}. ${suggestion}`);
+        
+        if (errorMsg.includes('spawn') || errorMsg.includes('ENOENT') || errorMsg.includes('Failed to launch')) {
+          setTimeout(() => {
+            this.statusMessage.set('⚠️ Chrome dependencies missing. SSH to server and run: sudo apt-get install -y chromium-browser (see DIGITAL_OCEAN_SETUP.md)');
+          }, 3000);
+        }
+      }
+    });
+  }
+
   protected loadContacts() {
     this.http.get<{ contacts: Contact[] }>(`${this.apiUrl}/api/whatsapp/contacts`).subscribe({
       next: (response) => {

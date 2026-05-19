@@ -33,29 +33,48 @@ function clearAuthSession() {
 // Initialize WhatsApp Client
 function initializeClient() {
   if (client) {
+    console.log('Client already exists, skipping initialization');
     return;
   }
 
+  console.log('Starting WhatsApp client initialization...');
   clientStatus = 'initializing';
   qrCodeData = null;
 
   client = new Client({
     authStrategy: new LocalAuth({
-      clientId: 'itb-whatsapp-client'
+      clientId: 'itb-whatsapp-client',
+      dataPath: authPath
     }),
     puppeteer: {
       headless: true,
-      args: ['--no-sandbox', '--disable-setuid-sandbox']
+      args: [
+        '--no-sandbox',
+        '--disable-setuid-sandbox',
+        '--disable-dev-shm-usage',
+        '--disable-accelerated-2d-canvas',
+        '--no-first-run',
+        '--no-zygote',
+        '--disable-gpu',
+        '--disable-extensions',
+        '--disable-background-timer-throttling',
+        '--disable-backgrounding-occluded-windows',
+        '--disable-renderer-backgrounding'
+      ]
     }
   });
 
-  // Set timeout for initialization (2 minutes)
+  console.log('WhatsApp client created, setting up event listeners...');
+
+  // Set timeout for initialization (3 minutes for slower servers)
   if (initializationTimeout) {
     clearTimeout(initializationTimeout);
   }
   initializationTimeout = setTimeout(() => {
     if (!isReady && client) {
-      console.log('WhatsApp initialization timeout - resetting client');
+      console.error('⏰ WhatsApp initialization timeout after 3 minutes');
+      console.error('Current status:', clientStatus);
+      console.error('QR Code exists:', !!qrCodeData);
       clientStatus = 'timeout';
       qrCodeData = null;
       if (client) {
@@ -63,17 +82,23 @@ function initializeClient() {
         client = null;
       }
     }
-  }, 120000); // 2 minutes
+  }, 180000); // 3 minutes (increased for slower servers)
+
+  client.on('loading_screen', (percent, message) => {
+    console.log('Loading screen:', percent, message);
+    clientStatus = 'loading';
+  });
 
   client.on('qr', (qr) => {
-    console.log('QR Code received');
+    console.log('✅ QR Code received! Length:', qr?.length);
+    console.log('QR Code preview:', qr?.substring(0, 50) + '...');
     qrCodeData = qr;
     clientStatus = 'qr_code';
     qrcode.generate(qr, { small: true });
   });
 
   client.on('ready', () => {
-    console.log('WhatsApp Client is ready!');
+    console.log('✅ WhatsApp Client is ready!');
     isReady = true;
     clientStatus = 'ready';
     qrCodeData = null;
@@ -84,12 +109,12 @@ function initializeClient() {
   });
 
   client.on('authenticated', () => {
-    console.log('WhatsApp Client authenticated');
+    console.log('✅ WhatsApp Client authenticated');
     clientStatus = 'authenticated';
   });
 
   client.on('auth_failure', (msg) => {
-    console.error('WhatsApp authentication failure:', msg);
+    console.error('❌ WhatsApp authentication failure:', msg);
     clientStatus = 'auth_failure';
     qrCodeData = null;
     if (initializationTimeout) {
@@ -97,7 +122,7 @@ function initializeClient() {
       initializationTimeout = null;
     }
     // Clear the session on auth failure so next initialization will generate new QR
-    console.log('Authentication failed - clearing session for fresh QR code');
+    console.log('Clearing session for fresh QR code...');
     if (client) {
       client.destroy().catch(console.error);
       client = null;
@@ -106,7 +131,7 @@ function initializeClient() {
   });
 
   client.on('disconnected', (reason) => {
-    console.log('WhatsApp Client disconnected:', reason);
+    console.log('⚠️  WhatsApp Client disconnected:', reason);
     isReady = false;
     clientStatus = 'disconnected';
     client = null;
@@ -117,8 +142,10 @@ function initializeClient() {
     }
   });
 
+  console.log('📱 Calling client.initialize()...');
   client.initialize().catch((error) => {
-    console.error('Client initialization error:', error);
+    console.error('❌ Client initialization error:', error);
+    console.error('Error stack:', error.stack);
     clientStatus = 'error';
     qrCodeData = null;
     client = null;
@@ -131,10 +158,16 @@ function initializeClient() {
 
 // GET: Get WhatsApp status and QR code
 router.get('/status', (req, res) => {
+  console.log('Status check - clientStatus:', clientStatus, 'isReady:', isReady, 'hasQR:', !!qrCodeData);
   res.json({
     status: clientStatus,
     isReady,
-    qrCode: qrCodeData
+    qrCode: qrCodeData,
+    debug: {
+      clientExists: !!client,
+      authPathExists: fs.existsSync(authPath),
+      timestamp: new Date().toISOString()
+    }
   });
 });
 
@@ -213,6 +246,44 @@ router.post('/reset', async (req, res) => {
   } catch (error) {
     console.error('Reset error:', error);
     res.status(500).json({ error: error.message });
+  }
+});
+
+// GET: Test Puppeteer (debugging endpoint)
+router.get('/test-puppeteer', async (req, res) => {
+  try {
+    console.log('Testing Puppeteer launch...');
+    const puppeteer = require('puppeteer');
+    
+    const browser = await puppeteer.launch({
+      headless: true,
+      args: [
+        '--no-sandbox',
+        '--disable-setuid-sandbox',
+        '--disable-dev-shm-usage',
+        '--disable-gpu'
+      ]
+    });
+    
+    console.log('✅ Puppeteer launched successfully!');
+    const version = await browser.version();
+    await browser.close();
+    
+    res.json({
+      success: true,
+      message: 'Puppeteer can launch successfully',
+      browserVersion: version,
+      authPathExists: fs.existsSync(authPath),
+      authPath: authPath
+    });
+  } catch (error) {
+    console.error('❌ Puppeteer test failed:', error);
+    res.status(500).json({
+      success: false,
+      error: error.message,
+      stack: error.stack,
+      suggestion: 'Install Chrome dependencies. See DIGITAL_OCEAN_SETUP.md'
+    });
   }
 });
 

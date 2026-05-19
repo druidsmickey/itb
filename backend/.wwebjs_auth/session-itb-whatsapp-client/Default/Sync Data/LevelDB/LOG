@@ -1,3 +1,2 @@
-2026/05/20-00:26:16.364 49ac Reusing MANIFEST C:\itb\backend\.wwebjs_auth\session-itb-whatsapp-client\Default\Sync Data\LevelDB/MANIFEST-000001
-2026/05/20-00:26:16.365 49ac Recovering log #3
-2026/05/20-00:26:16.368 49ac Reusing old log C:\itb\backend\.wwebjs_auth\session-itb-whatsapp-client\Default\Sync Data\LevelDB/000003.log 
+2026/05/20-00:33:16.874 2fd0 Creating DB C:\itb\backend\.wwebjs_auth\session-itb-whatsapp-client\Default\Sync Data\LevelDB since it was missing.
+2026/05/20-00:33:16.887 2fd0 Reusing MANIFEST C:\itb\backend\.wwebjs_auth\session-itb-whatsapp-client\Default\Sync Data\LevelDB/MANIFEST-000001

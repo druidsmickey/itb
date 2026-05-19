@@ -1,3 +1,2 @@
-2026/05/20-00:26:16.975 3c88 Reusing MANIFEST C:\itb\backend\.wwebjs_auth\session-itb-whatsapp-client\Default\Session Storage/MANIFEST-000001
-2026/05/20-00:26:16.978 3c88 Recovering log #3
-2026/05/20-00:26:16.980 3c88 Reusing old log C:\itb\backend\.wwebjs_auth\session-itb-whatsapp-client\Default\Session Storage/000003.log 
+2026/05/20-00:33:16.948 52b8 Creating DB C:\itb\backend\.wwebjs_auth\session-itb-whatsapp-client\Default\Session Storage since it was missing.
+2026/05/20-00:33:16.968 52b8 Reusing MANIFEST C:\itb\backend\.wwebjs_auth\session-itb-whatsapp-client\Default\Session Storage/MANIFEST-000001

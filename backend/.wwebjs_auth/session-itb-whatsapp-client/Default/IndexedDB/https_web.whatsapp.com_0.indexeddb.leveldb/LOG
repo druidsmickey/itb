@@ -1,12 +1,2 @@
-2026/05/20-00:26:17.001 17f4 Reusing MANIFEST C:\itb\backend\.wwebjs_auth\session-itb-whatsapp-client\Default\IndexedDB\https_web.whatsapp.com_0.indexeddb.leveldb/MANIFEST-000001
-2026/05/20-00:26:17.002 17f4 Recovering log #17
-2026/05/20-00:26:17.055 17f4 Reusing old log C:\itb\backend\.wwebjs_auth\session-itb-whatsapp-client\Default\IndexedDB\https_web.whatsapp.com_0.indexeddb.leveldb/000017.log 
-2026/05/20-00:26:20.634 17f4 Level-0 table #22: started
-2026/05/20-00:26:20.662 17f4 Level-0 table #22: 1219825 bytes OK
-2026/05/20-00:26:20.664 17f4 Delete type=0 #17
-2026/05/20-00:26:21.167 17f4 Compacting 1@1 + 1@2 files
-2026/05/20-00:26:21.223 17f4 Generated table #23@1: 44418 keys, 2050751 bytes
-2026/05/20-00:26:21.223 17f4 Compacted 1@1 + 1@2 files => 2050751 bytes
-2026/05/20-00:26:21.225 17f4 compacted to: files[ 0 0 1 0 0 0 0 ]
-2026/05/20-00:26:21.227 17f4 Delete type=2 #19
-2026/05/20-00:26:21.227 17f4 Delete type=2 #22
+2026/05/20-00:33:18.598 18d4 Creating DB C:\itb\backend\.wwebjs_auth\session-itb-whatsapp-client\Default\IndexedDB\https_web.whatsapp.com_0.indexeddb.leveldb since it was missing.
+2026/05/20-00:33:18.606 18d4 Reusing MANIFEST C:\itb\backend\.wwebjs_auth\session-itb-whatsapp-client\Default\IndexedDB\https_web.whatsapp.com_0.indexeddb.leveldb/MANIFEST-000001

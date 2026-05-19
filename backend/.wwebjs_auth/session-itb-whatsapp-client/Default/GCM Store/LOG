@@ -1,3 +1,2 @@
-2026/05/20-00:26:23.604 2cfc Reusing MANIFEST C:\itb\backend\.wwebjs_auth\session-itb-whatsapp-client\Default\GCM Store/MANIFEST-000001
-2026/05/20-00:26:23.604 2cfc Recovering log #3
-2026/05/20-00:26:23.605 2cfc Reusing old log C:\itb\backend\.wwebjs_auth\session-itb-whatsapp-client\Default\GCM Store/000003.log 
+2026/05/20-00:33:23.301 3eb0 Creating DB C:\itb\backend\.wwebjs_auth\session-itb-whatsapp-client\Default\GCM Store since it was missing.
+2026/05/20-00:33:23.306 3eb0 Reusing MANIFEST C:\itb\backend\.wwebjs_auth\session-itb-whatsapp-client\Default\GCM Store/MANIFEST-000001

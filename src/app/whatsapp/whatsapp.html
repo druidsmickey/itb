@@ -151,6 +151,13 @@
                 <mat-icon>refresh</mat-icon>
                 Reset & New QR
               </button>
+              <button mat-stroked-button 
+                      (click)="testPuppeteer()"
+                      [disabled]="loading()"
+                      matTooltip="Test if Chrome can launch (for debugging)">
+                <mat-icon>bug_report</mat-icon>
+                Test Server
+              </button>
             }
           </mat-card-actions>
           
