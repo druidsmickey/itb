@@ -2,6 +2,8 @@ const express = require('express');
 const router = express.Router();
 const { Client, LocalAuth } = require('whatsapp-web.js');
 const qrcode = require('qrcode-terminal');
+const fs = require('fs');
+const path = require('path');
 const WhatsappContact = require('../models/whatsappContact');
 const WhatsappGroup = require('../models/whatsappGroup');
 const WhatsappMessage = require('../models/whatsappMessage');
@@ -10,12 +12,32 @@ let client = null;
 let isReady = false;
 let qrCodeData = null;
 let clientStatus = 'disconnected';
+let initializationTimeout = null;
+
+// Path to LocalAuth session data
+const authPath = path.join(__dirname, '..', '.wwebjs_auth');
+
+// Clear LocalAuth session data
+function clearAuthSession() {
+  try {
+    if (fs.existsSync(authPath)) {
+      console.log('Clearing LocalAuth session data...');
+      fs.rmSync(authPath, { recursive: true, force: true });
+      console.log('LocalAuth session data cleared');
+    }
+  } catch (error) {
+    console.error('Error clearing auth session:', error);
+  }
+}
 
 // Initialize WhatsApp Client
 function initializeClient() {
   if (client) {
     return;
   }
+
+  clientStatus = 'initializing';
+  qrCodeData = null;
 
   client = new Client({
     authStrategy: new LocalAuth({
@@ -26,6 +48,22 @@ function initializeClient() {
       args: ['--no-sandbox', '--disable-setuid-sandbox']
     }
   });
+
+  // Set timeout for initialization (2 minutes)
+  if (initializationTimeout) {
+    clearTimeout(initializationTimeout);
+  }
+  initializationTimeout = setTimeout(() => {
+    if (!isReady && client) {
+      console.log('WhatsApp initialization timeout - resetting client');
+      clientStatus = 'timeout';
+      qrCodeData = null;
+      if (client) {
+        client.destroy().catch(console.error);
+        client = null;
+      }
+    }
+  }, 120000); // 2 minutes
 
   client.on('qr', (qr) => {
     console.log('QR Code received');
@@ -39,6 +77,10 @@ function initializeClient() {
     isReady = true;
     clientStatus = 'ready';
     qrCodeData = null;
+    if (initializationTimeout) {
+      clearTimeout(initializationTimeout);
+      initializationTimeout = null;
+    }
   });
 
   client.on('authenticated', () => {
@@ -50,6 +92,17 @@ function initializeClient() {
     console.error('WhatsApp authentication failure:', msg);
     clientStatus = 'auth_failure';
     qrCodeData = null;
+    if (initializationTimeout) {
+      clearTimeout(initializationTimeout);
+      initializationTimeout = null;
+    }
+    // Clear the session on auth failure so next initialization will generate new QR
+    console.log('Authentication failed - clearing session for fresh QR code');
+    if (client) {
+      client.destroy().catch(console.error);
+      client = null;
+    }
+    clearAuthSession();
   });
 
   client.on('disconnected', (reason) => {
@@ -57,9 +110,23 @@ function initializeClient() {
     isReady = false;
     clientStatus = 'disconnected';
     client = null;
+    qrCodeData = null;
+    if (initializationTimeout) {
+      clearTimeout(initializationTimeout);
+      initializationTimeout = null;
+    }
   });
 
-  client.initialize();
+  client.initialize().catch((error) => {
+    console.error('Client initialization error:', error);
+    clientStatus = 'error';
+    qrCodeData = null;
+    client = null;
+    if (initializationTimeout) {
+      clearTimeout(initializationTimeout);
+      initializationTimeout = null;
+    }
+  });
 }
 
 // GET: Get WhatsApp status and QR code
@@ -92,6 +159,10 @@ router.post('/initialize', (req, res) => {
 // POST: Disconnect WhatsApp client
 router.post('/disconnect', async (req, res) => {
   try {
+    if (initializationTimeout) {
+      clearTimeout(initializationTimeout);
+      initializationTimeout = null;
+    }
     if (client) {
       await client.destroy();
       client = null;
@@ -101,6 +172,46 @@ router.post('/disconnect', async (req, res) => {
     }
     res.json({ success: true, message: 'WhatsApp client disconnected' });
   } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// POST: Force re-initialization (clears session and generates new QR)
+router.post('/reset', async (req, res) => {
+  try {
+    console.log('Force reset requested - clearing session...');
+    
+    if (initializationTimeout) {
+      clearTimeout(initializationTimeout);
+      initializationTimeout = null;
+    }
+    
+    // Destroy existing client
+    if (client) {
+      await client.destroy();
+      client = null;
+    }
+    
+    // Clear session data
+    clearAuthSession();
+    
+    // Reset state
+    isReady = false;
+    clientStatus = 'disconnected';
+    qrCodeData = null;
+    
+    // Wait a bit for cleanup
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    
+    // Re-initialize
+    initializeClient();
+    
+    res.json({ 
+      success: true, 
+      message: 'Session cleared and re-initialization started. New QR code will be generated.' 
+    });
+  } catch (error) {
+    console.error('Reset error:', error);
     res.status(500).json({ error: error.message });
   }
 });

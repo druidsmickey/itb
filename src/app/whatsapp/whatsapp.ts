@@ -172,6 +172,28 @@ export class Whatsapp implements OnInit, OnDestroy {
     });
   }
 
+  protected resetWhatsApp() {
+    if (!confirm('This will clear your WhatsApp session and generate a new QR code. You will need to scan it again. Continue?')) {
+      return;
+    }
+
+    this.loading.set(true);
+    this.statusMessage.set('Resetting WhatsApp session...');
+    
+    this.http.post<any>(`${this.apiUrl}/api/whatsapp/reset`, {}).subscribe({
+      next: (response) => {
+        this.loading.set(false);
+        this.statusMessage.set(response.message);
+        // Start checking for QR code
+        setTimeout(() => this.checkStatus(), 2000);
+      },
+      error: (error) => {
+        this.loading.set(false);
+        this.statusMessage.set('Error: ' + (error.error?.error || error.message));
+      }
+    });
+  }
+
   protected loadContacts() {
     this.http.get<{ contacts: Contact[] }>(`${this.apiUrl}/api/whatsapp/contacts`).subscribe({
       next: (response) => {

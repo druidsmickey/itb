@@ -139,9 +139,19 @@
                 Disconnect
               </button>
             }
-            <button mat-raised-button (click)="checkStatus()">
+            <button mat-raised-button (click)="checkStatus()"
+                    [disabled]="loading()">
               Refresh Status
             </button>
+            @if (!status().isReady) {
+              <button mat-raised-button color="accent"
+                      (click)="resetWhatsApp()"
+                      [disabled]="loading()"
+                      matTooltip="Clear session and generate new QR code">
+                <mat-icon>refresh</mat-icon>
+                Reset & New QR
+              </button>
+            }
           </mat-card-actions>
           
           @if (status().qrCode) {
