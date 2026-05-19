@@ -4,6 +4,7 @@ const { Client, LocalAuth } = require('whatsapp-web.js');
 const qrcode = require('qrcode-terminal');
 const fs = require('fs');
 const path = require('path');
+const { execSync } = require('child_process');
 const WhatsappContact = require('../models/whatsappContact');
 const WhatsappGroup = require('../models/whatsappGroup');
 const WhatsappMessage = require('../models/whatsappMessage');
@@ -16,6 +17,45 @@ let initializationTimeout = null;
 
 // Path to LocalAuth session data
 const authPath = path.join(__dirname, '..', '.wwebjs_auth');
+
+// Find Chrome/Chromium executable
+function findChrome() {
+  const possiblePaths = [
+    '/usr/bin/chromium-browser',
+    '/usr/bin/chromium',
+    '/usr/bin/google-chrome',
+    '/usr/bin/google-chrome-stable',
+    '/snap/bin/chromium',
+    'chromium-browser',
+    'chromium',
+    'google-chrome',
+    'google-chrome-stable'
+  ];
+
+  for (const chromePath of possiblePaths) {
+    try {
+      if (chromePath.startsWith('/')) {
+        // Absolute path - check if file exists
+        if (fs.existsSync(chromePath)) {
+          console.log('✅ Found Chrome at:', chromePath);
+          return chromePath;
+        }
+      } else {
+        // Command - try to find with 'which'
+        const result = execSync(`which ${chromePath}`, { encoding: 'utf8' }).trim();
+        if (result) {
+          console.log('✅ Found Chrome at:', result);
+          return result;
+        }
+      }
+    } catch (error) {
+      // Continue to next path
+    }
+  }
+
+  console.log('⚠️  Chrome not found in system paths, Puppeteer will try to use bundled version');
+  return null;
+}
 
 // Clear LocalAuth session data
 function clearAuthSession() {
@@ -41,30 +81,43 @@ function initializeClient() {
   clientStatus = 'initializing';
   qrCodeData = null;
 
+  // Find Chrome executable
+  const chromePath = findChrome();
+  
+  const puppeteerConfig = {
+    headless: true,
+    args: [
+      '--no-sandbox',
+      '--disable-setuid-sandbox',
+      '--disable-dev-shm-usage',
+      '--disable-accelerated-2d-canvas',
+      '--no-first-run',
+      '--no-zygote',
+      '--disable-gpu',
+      '--disable-extensions',
+      '--disable-background-timer-throttling',
+      '--disable-backgrounding-occluded-windows',
+      '--disable-renderer-backgrounding'
+    ]
+  };
+
+  // Use system Chrome if found
+  if (chromePath) {
+    puppeteerConfig.executablePath = chromePath;
+  }
+
   client = new Client({
     authStrategy: new LocalAuth({
       clientId: 'itb-whatsapp-client',
       dataPath: authPath
     }),
-    puppeteer: {
-      headless: true,
-      args: [
-        '--no-sandbox',
-        '--disable-setuid-sandbox',
-        '--disable-dev-shm-usage',
-        '--disable-accelerated-2d-canvas',
-        '--no-first-run',
-        '--no-zygote',
-        '--disable-gpu',
-        '--disable-extensions',
-        '--disable-background-timer-throttling',
-        '--disable-backgrounding-occluded-windows',
-        '--disable-renderer-backgrounding'
-      ]
-    }
+    puppeteer: puppeteerConfig
   });
 
-  console.log('WhatsApp client created, setting up event listeners...');
+  console.log('WhatsApp client created with config:', {
+    hasExecutablePath: !!chromePath,
+    executablePath: chromePath || 'using bundled Chrome'
+  });
 
   // Set timeout for initialization (3 minutes for slower servers)
   if (initializationTimeout) {
@@ -255,7 +308,10 @@ router.get('/test-puppeteer', async (req, res) => {
     console.log('Testing Puppeteer launch...');
     const puppeteer = require('puppeteer');
     
-    const browser = await puppeteer.launch({
+    // Find Chrome using same logic as WhatsApp client
+    const chromePath = findChrome();
+    
+    const launchConfig = {
       headless: true,
       args: [
         '--no-sandbox',
@@ -263,7 +319,14 @@ router.get('/test-puppeteer', async (req, res) => {
         '--disable-dev-shm-usage',
         '--disable-gpu'
       ]
-    });
+    };
+
+    if (chromePath) {
+      launchConfig.executablePath = chromePath;
+    }
+
+    console.log('Launching with config:', launchConfig);
+    const browser = await puppeteer.launch(launchConfig);
     
     console.log('✅ Puppeteer launched successfully!');
     const version = await browser.version();
@@ -273,16 +336,30 @@ router.get('/test-puppeteer', async (req, res) => {
       success: true,
       message: 'Puppeteer can launch successfully',
       browserVersion: version,
+      chromePath: chromePath || 'using bundled Chrome',
       authPathExists: fs.existsSync(authPath),
       authPath: authPath
     });
   } catch (error) {
     console.error('❌ Puppeteer test failed:', error);
+    
+    // More helpful error message
+    let suggestion = 'Install Chromium browser. See DIGITAL_OCEAN_SETUP.md';
+    if (error.message.includes('Could not find Chrome')) {
+      suggestion = 'Run: sudo apt-get update && sudo apt-get install -y chromium-browser';
+    }
+    
     res.status(500).json({
       success: false,
       error: error.message,
       stack: error.stack,
-      suggestion: 'Install Chrome dependencies. See DIGITAL_OCEAN_SETUP.md'
+      suggestion: suggestion,
+      triedPaths: [
+        '/usr/bin/chromium-browser',
+        '/usr/bin/chromium',
+        '/usr/bin/google-chrome',
+        '/usr/bin/google-chrome-stable'
+      ]
     });
   }
 });

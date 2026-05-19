@@ -202,7 +202,7 @@ export class Whatsapp implements OnInit, OnDestroy {
       next: (response) => {
         this.loading.set(false);
         if (response.success) {
-          this.statusMessage.set(`✅ Server test passed! Browser: ${response.browserVersion}`);
+          this.statusMessage.set(`✅ Server test passed! Browser: ${response.browserVersion}. Chrome path: ${response.chromePath}`);
         } else {
           this.statusMessage.set(`❌ Server test failed: ${response.error}`);
         }
@@ -211,12 +211,13 @@ export class Whatsapp implements OnInit, OnDestroy {
         this.loading.set(false);
         const errorMsg = error.error?.error || error.message;
         const suggestion = error.error?.suggestion || '';
-        this.statusMessage.set(`❌ Test failed: ${errorMsg}. ${suggestion}`);
         
-        if (errorMsg.includes('spawn') || errorMsg.includes('ENOENT') || errorMsg.includes('Failed to launch')) {
-          setTimeout(() => {
-            this.statusMessage.set('⚠️ Chrome dependencies missing. SSH to server and run: sudo apt-get install -y chromium-browser (see DIGITAL_OCEAN_SETUP.md)');
-          }, 3000);
+        if (errorMsg.includes('Could not find Chrome')) {
+          this.statusMessage.set('❌ Chrome not installed on server. SSH and run: sudo apt-get update && sudo apt-get install -y chromium-browser');
+        } else if (errorMsg.includes('spawn') || errorMsg.includes('ENOENT')) {
+          this.statusMessage.set('❌ Chrome missing. Install: sudo apt-get install -y chromium-browser');
+        } else {
+          this.statusMessage.set(`❌ Test failed: ${errorMsg}. ${suggestion}`);
         }
       }
     });

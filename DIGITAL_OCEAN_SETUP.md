@@ -1,8 +1,57 @@
 # Digital Ocean Setup Guide for WhatsApp Integration
 
-## Issue: QR Code Not Generating
+## ❌ Error: "Could not find Chrome"
 
-If WhatsApp QR codes are not appearing on Digital Ocean, it's likely due to missing Chrome/Chromium dependencies.
+You're seeing this error because Chrome/Chromium is not installed on your server.
+
+## ✅ Quick Fix (Copy & Paste This)
+
+SSH into your Digital Ocean droplet and run this **single command**:
+
+```bash
+sudo apt-get update && sudo apt-get install -y chromium-browser && pm2 restart backend
+```
+
+**What this does:**
+1. Updates package lists
+2. Installs Chromium browser (Chrome's open-source version)
+3. Restarts your backend automatically
+
+### If you don't use pm2, restart manually:
+
+```bash
+# For systemd
+sudo systemctl restart your-app-name
+
+# For direct node process
+# Kill existing process and restart
+pkill -f "node.*backend" && cd /path/to/backend && node server.js &
+```
+
+## Verify It Works
+
+1. Go back to your app
+2. Click **"Test Server"** button in WhatsApp → Connection tab
+3. Should see: `✅ Server test passed! Browser: HeadlessChrome/...`
+4. Click **"Initialize WhatsApp"** or **"Reset & New QR"**
+5. QR code appears in 10-20 seconds
+
+## Understanding the Error
+
+The error message means:
+- Puppeteer (the library that controls Chrome) can't find Chrome on your server
+- Digital Ocean droplets come with minimal software - Chrome is not included
+- Installing `chromium-browser` gives Puppeteer a browser to control
+
+## Alternative: Let Puppeteer Download Chrome
+
+If system Chromium doesn't work:
+
+```bash
+cd /path/to/backend
+npx puppeteer browsers install chrome
+pm2 restart backend
+```
 
 ## Solution: Install Chrome Dependencies
 
