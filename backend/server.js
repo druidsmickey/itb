@@ -5,6 +5,7 @@ const cors = require('cors');
 const compression = require('compression');
 
 const { router: authRouter, authenticateToken } = require('./routes/auth');
+const whatsappRouter = require('./routes/whatsapp');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -97,6 +98,7 @@ function cacheInvalidate(...prefixes) {
 
 // Basic route
 app.use('/auth', authRouter);
+app.use('/api/whatsapp', authenticateToken, whatsappRouter);
 
 app.get('/', (req, res) => {
   res.json({ 

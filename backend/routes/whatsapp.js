@@ -1,0 +1,811 @@
+const express = require('express');
+const router = express.Router();
+const { Client, LocalAuth } = require('whatsapp-web.js');
+const qrcode = require('qrcode-terminal');
+const WhatsappContact = require('../models/whatsappContact');
+const WhatsappGroup = require('../models/whatsappGroup');
+const WhatsappMessage = require('../models/whatsappMessage');
+
+let client = null;
+let isReady = false;
+let qrCodeData = null;
+let clientStatus = 'disconnected';
+
+// Initialize WhatsApp Client
+function initializeClient() {
+  if (client) {
+    return;
+  }
+
+  client = new Client({
+    authStrategy: new LocalAuth({
+      clientId: 'itb-whatsapp-client'
+    }),
+    puppeteer: {
+      headless: true,
+      args: ['--no-sandbox', '--disable-setuid-sandbox']
+    }
+  });
+
+  client.on('qr', (qr) => {
+    console.log('QR Code received');
+    qrCodeData = qr;
+    clientStatus = 'qr_code';
+    qrcode.generate(qr, { small: true });
+  });
+
+  client.on('ready', () => {
+    console.log('WhatsApp Client is ready!');
+    isReady = true;
+    clientStatus = 'ready';
+    qrCodeData = null;
+  });
+
+  client.on('authenticated', () => {
+    console.log('WhatsApp Client authenticated');
+    clientStatus = 'authenticated';
+  });
+
+  client.on('auth_failure', (msg) => {
+    console.error('WhatsApp authentication failure:', msg);
+    clientStatus = 'auth_failure';
+    qrCodeData = null;
+  });
+
+  client.on('disconnected', (reason) => {
+    console.log('WhatsApp Client disconnected:', reason);
+    isReady = false;
+    clientStatus = 'disconnected';
+    client = null;
+  });
+
+  client.initialize();
+}
+
+// GET: Get WhatsApp status and QR code
+router.get('/status', (req, res) => {
+  res.json({
+    status: clientStatus,
+    isReady,
+    qrCode: qrCodeData
+  });
+});
+
+// POST: Initialize WhatsApp client
+router.post('/initialize', (req, res) => {
+  try {
+    if (client && isReady) {
+      return res.json({ success: true, message: 'Client already initialized and ready' });
+    }
+    
+    if (client && !isReady) {
+      return res.json({ success: true, message: 'Client initialization in progress' });
+    }
+
+    initializeClient();
+    res.json({ success: true, message: 'WhatsApp client initialization started' });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// POST: Disconnect WhatsApp client
+router.post('/disconnect', async (req, res) => {
+  try {
+    if (client) {
+      await client.destroy();
+      client = null;
+      isReady = false;
+      clientStatus = 'disconnected';
+      qrCodeData = null;
+    }
+    res.json({ success: true, message: 'WhatsApp client disconnected' });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// GET: Get all contacts (from MongoDB)
+router.get('/contacts', async (req, res) => {
+  try {
+    const contacts = await WhatsappContact.find().sort({ name: 1 });
+    res.json({ 
+      contacts: contacts.map(c => ({
+        id: c._id.toString(),
+        name: c.name,
+        number: c.number,
+        createdAt: c.createdAt
+      }))
+    });
+  } catch (error) {
+    console.error('Error loading contacts:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// GET: Fetch contacts from WhatsApp
+router.get('/whatsapp-contacts', async (req, res) => {
+  try {
+    if (!client || !isReady) {
+      return res.status(400).json({ error: 'WhatsApp client is not ready' });
+    }
+
+    const whatsappContacts = await client.getContacts();
+    
+    // Filter out groups and only return individual contacts with names
+    const individualContacts = whatsappContacts
+      .filter(contact => 
+        contact.isUser && // Only individual users, not groups
+        !contact.isMe && // Exclude yourself
+        contact.name && // Has a name
+        contact.id && 
+        contact.id._serialized // Has a valid ID
+      )
+      .map(contact => ({
+        name: contact.name || contact.pushname || contact.number,
+        number: contact.id._serialized,
+        isWhatsAppContact: true
+      }))
+      .sort((a, b) => a.name.localeCompare(b.name)); // Sort alphabetically
+
+    res.json({ 
+      success: true, 
+      contacts: individualContacts,
+      count: individualContacts.length 
+    });
+  } catch (error) {
+    console.error('Error fetching WhatsApp contacts:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// POST: Import contacts from WhatsApp to MongoDB
+router.post('/import-contacts', async (req, res) => {
+  try {
+    if (!client || !isReady) {
+      return res.status(400).json({ error: 'WhatsApp client is not ready' });
+    }
+
+    const { selectedNumbers } = req.body;
+
+    if (!selectedNumbers || !Array.isArray(selectedNumbers)) {
+      return res.status(400).json({ error: 'Selected numbers array is required' });
+    }
+
+    console.log('Importing contacts:', selectedNumbers.length, 'selected');
+
+    const whatsappContacts = await client.getContacts();
+    console.log('Total WhatsApp contacts available:', whatsappContacts.length);
+    
+    let importedCount = 0;
+    let skippedCount = 0;
+    let notFoundCount = 0;
+    const imported = [];
+    const skipped = [];
+
+    for (const number of selectedNumbers) {
+      const whatsappContact = whatsappContacts.find(c => c.id && c.id._serialized === number);
+      
+      if (!whatsappContact) {
+        console.log('Contact not found for number:', number);
+        notFoundCount++;
+        continue;
+      }
+
+      // Check if contact already exists
+      const existingContact = await WhatsappContact.findOne({ number });
+      if (existingContact) {
+        console.log('Contact already exists:', number);
+        skipped.push({ number, name: whatsappContact.name || whatsappContact.pushname });
+        skippedCount++;
+        continue;
+      }
+
+      const newContact = await WhatsappContact.create({
+        name: whatsappContact.name || whatsappContact.pushname || whatsappContact.number || 'Unknown',
+        number: number
+      });
+      
+      imported.push({
+        id: newContact._id.toString(),
+        name: newContact.name,
+        number: newContact.number,
+        createdAt: newContact.createdAt
+      });
+      importedCount++;
+      console.log('Imported contact:', newContact.name, newContact.number);
+    }
+
+    console.log(`Import summary: ${importedCount} imported, ${skippedCount} skipped, ${notFoundCount} not found`);
+
+    res.json({ 
+      success: true, 
+      message: `Imported ${importedCount} contact(s)${skippedCount > 0 ? `, ${skippedCount} already existed` : ''}`,
+      imported,
+      skipped,
+      count: importedCount,
+      skippedCount,
+      notFoundCount
+    });
+  } catch (error) {
+    console.error('Error importing contacts:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// POST: Add a contact manually
+router.post('/contacts', async (req, res) => {
+  try {
+    const { name, number } = req.body;
+    
+    if (!name || !number) {
+      return res.status(400).json({ error: 'Name and number are required' });
+    }
+
+    // Format number: remove spaces, dashes, and ensure it has country code
+    let formattedNumber = number.replace(/[\s-]/g, '');
+    if (!formattedNumber.includes('@')) {
+      formattedNumber = formattedNumber + '@c.us';
+    }
+
+    const existingContact = await WhatsappContact.findOne({ number: formattedNumber });
+    if (existingContact) {
+      return res.status(400).json({ error: 'Contact already exists' });
+    }
+
+    const newContact = await WhatsappContact.create({
+      name,
+      number: formattedNumber
+    });
+
+    res.json({ 
+      success: true, 
+      contact: {
+        id: newContact._id.toString(),
+        name: newContact.name,
+        number: newContact.number,
+        createdAt: newContact.createdAt
+      }
+    });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// DELETE: Remove a contact
+router.delete('/contacts/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    
+    const contact = await WhatsappContact.findByIdAndDelete(id);
+    
+    if (!contact) {
+      return res.status(404).json({ error: 'Contact not found' });
+    }
+
+    // Also remove this contact from all groups
+    await WhatsappGroup.updateMany(
+      { contactIds: id },
+      { $pull: { contactIds: id } }
+    );
+
+    res.json({ success: true, message: 'Contact deleted' });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// POST: Send message to a contact
+router.post('/send-message', async (req, res) => {
+  try {
+    if (!client || !isReady) {
+      return res.status(400).json({ error: 'WhatsApp client is not ready. Please initialize first.' });
+    }
+
+    const { contactId, message } = req.body;
+
+    if (!contactId || !message) {
+      return res.status(400).json({ error: 'Contact ID and message are required' });
+    }
+
+    const contact = await WhatsappContact.findById(contactId);
+    if (!contact) {
+      return res.status(404).json({ error: 'Contact not found' });
+    }
+
+    await client.sendMessage(contact.number, message);
+    
+    res.json({ 
+      success: true, 
+      message: 'Message sent successfully',
+      sentTo: contact.name
+    });
+  } catch (error) {
+    console.error('Error sending message:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// POST: Send bulk messages to multiple contacts
+router.post('/send-bulk', async (req, res) => {
+  try {
+    if (!client || !isReady) {
+      return res.status(400).json({ error: 'WhatsApp client is not ready. Please initialize first.' });
+    }
+
+    const { contactIds, message } = req.body;
+
+    if (!contactIds || !Array.isArray(contactIds) || contactIds.length === 0) {
+      return res.status(400).json({ error: 'Contact IDs array is required' });
+    }
+
+    if (!message) {
+      return res.status(400).json({ error: 'Message is required' });
+    }
+
+    const results = [];
+    
+    for (const contactId of contactIds) {
+      const contact = await WhatsappContact.findById(contactId);
+      if (!contact) {
+        results.push({ contactId, success: false, error: 'Contact not found' });
+        continue;
+      }
+
+      try {
+        await client.sendMessage(contact.number, message);
+        results.push({ 
+          contactId, 
+          name: contact.name,
+          success: true 
+        });
+        
+        // Add a small delay between messages to avoid rate limiting
+        await new Promise(resolve => setTimeout(resolve, 1000));
+      } catch (error) {
+        results.push({ 
+          contactId, 
+          name: contact.name,
+          success: false, 
+          error: error.message 
+        });
+      }
+    }
+
+    res.json({ 
+      success: true, 
+      message: 'Bulk messages processed',
+      results 
+    });
+  } catch (error) {
+    console.error('Error sending bulk messages:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// POST: Send formatted betting report
+router.post('/send-report', async (req, res) => {
+  try {
+    if (!client || !isReady) {
+      return res.status(400).json({ error: 'WhatsApp client is not ready. Please initialize first.' });
+    }
+
+    const { contactId, reportData } = req.body;
+
+    if (!contactId || !reportData) {
+      return res.status(400).json({ error: 'Contact ID and report data are required' });
+    }
+
+    const contact = await WhatsappContact.findById(contactId);
+    if (!contact) {
+      return res.status(404).json({ error: 'Contact not found' });
+    }
+
+    // Format the report message
+    let formattedMessage = `*${reportData.title || 'Betting Report'}*\n\n`;
+    
+    if (reportData.meeting) {
+      formattedMessage += `📅 Meeting: ${reportData.meeting}\n`;
+    }
+    
+    if (reportData.date) {
+      formattedMessage += `📆 Date: ${reportData.date}\n`;
+    }
+    
+    formattedMessage += `\n`;
+    
+    if (reportData.races && Array.isArray(reportData.races)) {
+      reportData.races.forEach((race, index) => {
+        formattedMessage += `🏇 *Race ${index + 1}*\n`;
+        if (race.winner) formattedMessage += `Winner: ${race.winner}\n`;
+        if (race.totalBets) formattedMessage += `Total Bets: ${race.totalBets}\n`;
+        if (race.totalPayout) formattedMessage += `Total Payout: ${race.totalPayout}\n`;
+        formattedMessage += `\n`;
+      });
+    }
+    
+    if (reportData.summary) {
+      formattedMessage += `📊 *Summary*\n`;
+      formattedMessage += reportData.summary + `\n`;
+    }
+    
+    if (reportData.footer) {
+      formattedMessage += `\n${reportData.footer}`;
+    }
+
+    await client.sendMessage(contact.number, formattedMessage);
+    
+    res.json({ 
+      success: true, 
+      message: 'Report sent successfully',
+      sentTo: contact.name
+    });
+  } catch (error) {
+    console.error('Error sending report:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// ==================== GROUP MANAGEMENT ====================
+
+// GET: Get all groups
+router.get('/groups', async (req, res) => {
+  try {
+    const groups = await WhatsappGroup.find().sort({ name: 1 });
+    res.json({ 
+      success: true,
+      groups: groups.map(group => ({
+        id: group._id.toString(),
+        name: group.name,
+        contactIds: group.contactIds.map(id => id.toString()),
+        contactCount: group.contactIds.length,
+        createdAt: group.createdAt,
+        updatedAt: group.updatedAt
+      }))
+    });
+  } catch (error) {
+    console.error('Error loading groups:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// POST: Create a new group
+router.post('/groups', async (req, res) => {
+  try {
+    const { name, contactIds } = req.body;
+    
+    console.log('Creating group:', name);
+    console.log('Received contact IDs:', contactIds);
+    
+    if (!name) {
+      return res.status(400).json({ error: 'Group name is required' });
+    }
+
+    if (!contactIds || !Array.isArray(contactIds)) {
+      return res.status(400).json({ error: 'Contact IDs array is required' });
+    }
+
+    // Check if group name already exists
+    const existingGroup = await WhatsappGroup.findOne({ name: { $regex: new RegExp(`^${name}$`, 'i') } });
+    if (existingGroup) {
+      return res.status(400).json({ error: 'Group name already exists' });
+    }
+
+    // Validate contact IDs exist
+    const validContactIds = [];
+    for (const id of contactIds) {
+      const contact = await WhatsappContact.findById(id);
+      if (contact) {
+        validContactIds.push(id);
+      } else {
+        console.log('Contact ID not found:', id);
+      }
+    }
+
+    console.log('Valid contact IDs after filtering:', validContactIds);
+
+    const newGroup = await WhatsappGroup.create({
+      name,
+      contactIds: validContactIds
+    });
+    
+    console.log('Group created:', newGroup);
+    
+    res.json({ 
+      success: true, 
+      message: 'Group created successfully',
+      group: {
+        id: newGroup._id.toString(),
+        name: newGroup.name,
+        contactIds: newGroup.contactIds.map(id => id.toString()),
+        contactCount: newGroup.contactIds.length,
+        createdAt: newGroup.createdAt,
+        updatedAt: newGroup.updatedAt
+      }
+    });
+  } catch (error) {
+    console.error('Error creating group:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// PUT: Update a group
+router.put('/groups/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { name, contactIds } = req.body;
+
+    console.log('Updating group:', id);
+    console.log('New name:', name);
+    console.log('New contact IDs:', contactIds);
+
+    const group = await WhatsappGroup.findById(id);
+    if (!group) {
+      return res.status(404).json({ error: 'Group not found' });
+    }
+
+    console.log('Current group:', group);
+
+    if (name) {
+      // Check if new name conflicts with another group
+      const duplicate = await WhatsappGroup.findOne({ 
+        _id: { $ne: id },
+        name: { $regex: new RegExp(`^${name}$`, 'i') }
+      });
+      if (duplicate) {
+        return res.status(400).json({ error: 'Group name already exists' });
+      }
+      group.name = name;
+    }
+
+    if (contactIds && Array.isArray(contactIds)) {
+      // Validate contact IDs
+      const validContactIds = [];
+      for (const cid of contactIds) {
+        const contact = await WhatsappContact.findById(cid);
+        if (contact) {
+          validContactIds.push(cid);
+        } else {
+          console.log('Contact ID not found during update:', cid);
+        }
+      }
+      group.contactIds = validContactIds;
+      console.log('Updated group contact IDs:', group.contactIds);
+    }
+
+    group.updatedAt = new Date();
+    await group.save();
+
+    console.log('Group after update:', group);
+
+    res.json({ 
+      success: true, 
+      message: 'Group updated successfully',
+      group: {
+        id: group._id.toString(),
+        name: group.name,
+        contactIds: group.contactIds.map(id => id.toString()),
+        contactCount: group.contactIds.length,
+        createdAt: group.createdAt,
+        updatedAt: group.updatedAt
+      }
+    });
+  } catch (error) {
+    console.error('Error updating group:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// DELETE: Delete a group
+router.delete('/groups/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    
+    const group = await WhatsappGroup.findByIdAndDelete(id);
+    
+    if (!group) {
+      return res.status(404).json({ error: 'Group not found' });
+    }
+
+    res.json({ success: true, message: 'Group deleted successfully' });
+  } catch (error) {
+    console.error('Error deleting group:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// POST: Send message to all contacts in a group
+router.post('/send-to-group', async (req, res) => {
+  try {
+    if (!client || !isReady) {
+      return res.status(400).json({ error: 'WhatsApp client is not ready. Please initialize first.' });
+    }
+
+    const { groupId, message } = req.body;
+
+    if (!groupId || !message) {
+      return res.status(400).json({ error: 'Group ID and message are required' });
+    }
+
+    const group = await WhatsappGroup.findById(groupId);
+    if (!group) {
+      return res.status(404).json({ error: 'Group not found' });
+    }
+
+    if (group.contactIds.length === 0) {
+      return res.status(400).json({ error: 'Group has no contacts' });
+    }
+
+    const results = [];
+    const messageIds = [];
+    
+    for (const contactId of group.contactIds) {
+      const contact = await WhatsappContact.findById(contactId);
+      if (!contact) {
+        results.push({ contactId: contactId.toString(), success: false, error: 'Contact not found' });
+        continue;
+      }
+
+      try {
+        const sentMessage = await client.sendMessage(contact.number, message);
+        results.push({ 
+          contactId: contactId.toString(), 
+          name: contact.name,
+          success: true 
+        });
+
+        // Store message ID for potential deletion
+        messageIds.push({
+          contactId: contactId,
+          contactName: contact.name,
+          whatsappMessageId: sentMessage.id._serialized,
+          chatId: contact.number,
+          timestamp: sentMessage.timestamp
+        });
+        
+        // Add a small delay between messages to avoid rate limiting
+        await new Promise(resolve => setTimeout(resolve, 1000));
+      } catch (error) {
+        results.push({ 
+          contactId: contactId.toString(), 
+          name: contact.name,
+          success: false, 
+          error: error.message 
+        });
+      }
+    }
+
+    const successCount = results.filter(r => r.success).length;
+
+    // Save message to database for history
+    const savedMessage = await WhatsappMessage.create({
+      groupId,
+      groupName: group.name,
+      message,
+      messageIds
+    });
+
+    res.json({ 
+      success: true, 
+      message: `Sent to ${successCount}/${results.length} contacts in group "${group.name}"`,
+      groupName: group.name,
+      messageId: savedMessage._id.toString(),
+      results 
+    });
+  } catch (error) {
+    console.error('Error sending message to group:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// GET: Get message history for a group
+router.get('/messages/:groupId', async (req, res) => {
+  try {
+    const { groupId } = req.params;
+    const limit = parseInt(req.query.limit) || 50;
+
+    const messages = await WhatsappMessage.find({ groupId })
+      .sort({ sentAt: -1 })
+      .limit(limit)
+      .lean();
+
+    res.json({
+      success: true,
+      messages: messages.map(msg => ({
+        id: msg._id.toString(),
+        message: msg.message,
+        sentAt: msg.sentAt,
+        contactCount: msg.messageIds.length
+      }))
+    });
+  } catch (error) {
+    console.error('Error fetching messages:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// POST: Delete selected messages
+router.post('/delete-messages', async (req, res) => {
+  try {
+    if (!client || !isReady) {
+      return res.status(400).json({ error: 'WhatsApp client is not ready. Please initialize first.' });
+    }
+
+    const { messageIds } = req.body;
+
+    if (!messageIds || !Array.isArray(messageIds) || messageIds.length === 0) {
+      return res.status(400).json({ error: 'Message IDs array is required' });
+    }
+
+    let totalDeleted = 0;
+    const deletionResults = [];
+
+    for (const msgId of messageIds) {
+      try {
+        const messageDoc = await WhatsappMessage.findById(msgId);
+        
+        if (!messageDoc) {
+          deletionResults.push({
+            messageId: msgId,
+            success: false,
+            error: 'Message not found in database'
+          });
+          continue;
+        }
+
+        let deletedFromContacts = 0;
+
+        // Delete from each contact's chat
+        for (const msgInfo of messageDoc.messageIds) {
+          try {
+            const chat = await client.getChatById(msgInfo.chatId);
+            const messages = await chat.fetchMessages({ limit: 100 });
+            
+            // Find message by ID
+            const message = messages.find(m => m.id._serialized === msgInfo.whatsappMessageId);
+            
+            if (message) {
+              await message.delete(true); // true = delete for everyone
+              deletedFromContacts++;
+            }
+
+            await new Promise(resolve => setTimeout(resolve, 300));
+          } catch (error) {
+            console.error(`Failed to delete from ${msgInfo.contactName}:`, error.message);
+          }
+        }
+
+        // Remove from database
+        await WhatsappMessage.findByIdAndDelete(msgId);
+
+        deletionResults.push({
+          messageId: msgId,
+          success: true,
+          deletedFromContacts,
+          totalContacts: messageDoc.messageIds.length,
+          message: messageDoc.message.substring(0, 50) + '...'
+        });
+
+        totalDeleted++;
+      } catch (error) {
+        deletionResults.push({
+          messageId: msgId,
+          success: false,
+          error: error.message
+        });
+      }
+    }
+
+    res.json({
+      success: true,
+      message: `Deleted ${totalDeleted} of ${messageIds.length} message(s)`,
+      totalDeleted,
+      results: deletionResults
+    });
+  } catch (error) {
+    console.error('Error deleting messages:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+module.exports = router;
