@@ -375,6 +375,15 @@ export class Whatsapp implements OnInit, OnDestroy {
     }
   }
 
+  protected getQrCodeUrl(): string {
+    const qrCode = this.status().qrCode;
+    if (!qrCode) return '';
+    
+    // Properly encode the QR code data for the URL
+    const encodedQrCode = encodeURIComponent(qrCode);
+    return `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodedQrCode}`;
+  }
+
   protected fetchWhatsAppContacts() {
     if (!this.status().isReady) {
       this.statusMessage.set('WhatsApp is not connected. Please connect first.');
