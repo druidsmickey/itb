@@ -1,2 +1,3 @@
-2026/05/20-00:33:16.882 5068 Creating DB C:\itb\backend\.wwebjs_auth\session-itb-whatsapp-client\Default\Site Characteristics Database since it was missing.
-2026/05/20-00:33:16.907 5068 Reusing MANIFEST C:\itb\backend\.wwebjs_auth\session-itb-whatsapp-client\Default\Site Characteristics Database/MANIFEST-000001
+2026/05/21-18:29:52.343 48b4 Reusing MANIFEST C:\itb\backend\.wwebjs_auth\session-itb-whatsapp-client\Default\Site Characteristics Database/MANIFEST-000001
+2026/05/21-18:29:52.344 48b4 Recovering log #3
+2026/05/21-18:29:52.345 48b4 Reusing old log C:\itb\backend\.wwebjs_auth\session-itb-whatsapp-client\Default\Site Characteristics Database/000003.log 

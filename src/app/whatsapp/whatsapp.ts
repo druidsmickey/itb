@@ -1,4 +1,4 @@
-import { Component, signal, inject, OnInit, OnDestroy } from '@angular/core';
+import { Component, signal, inject, OnInit, OnDestroy, viewChild, ElementRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
@@ -102,6 +102,8 @@ export class Whatsapp implements OnInit, OnDestroy {
   
   protected loading = signal(false);
   protected statusMessage = signal('');
+  
+  protected cameraInput = viewChild<ElementRef<HTMLInputElement>>('cameraInput');
   
   private statusCheckInterval: any = null;
 
@@ -738,5 +740,69 @@ export class Whatsapp implements OnInit, OnDestroy {
     if (contactNames.length === 0) return 'No contacts';
     if (contactNames.length <= 3) return contactNames.join(', ');
     return `${contactNames.slice(0, 3).join(', ')} +${contactNames.length - 3} more`;
+  }
+
+  protected triggerCamera() {
+    const input = this.cameraInput();
+    if (input) {
+      input.nativeElement.click();
+    }
+  }
+
+  protected onImageSelected(event: Event) {
+    const input = event.target as HTMLInputElement;
+    if (input.files && input.files.length > 0) {
+      const file = input.files[0];
+      this.sendImageToGroup(file);
+    }
+  }
+
+  protected sendImageToGroup(imageFile: File) {
+    const groupId = this.selectedGroup();
+    
+    if (!groupId) {
+      this.statusMessage.set('Please select a group');
+      return;
+    }
+
+    this.loading.set(true);
+    this.statusMessage.set('Sending image to group...');
+
+    // Create FormData to send the image
+    const formData = new FormData();
+    formData.append('groupId', groupId);
+    formData.append('image', imageFile);
+    
+    // Add caption if there's a message
+    const messageText = this.message();
+    if (messageText) {
+      formData.append('caption', messageText);
+    }
+
+    this.http.post<any>(`${this.apiUrl}/api/whatsapp/send-image-to-group`, formData).subscribe({
+      next: (response) => {
+        this.loading.set(false);
+        this.statusMessage.set(response.message);
+        this.message.set('');
+        
+        // Clear the file input
+        const input = this.cameraInput();
+        if (input) {
+          input.nativeElement.value = '';
+        }
+        
+        this.loadMessageHistory();
+      },
+      error: (error) => {
+        this.loading.set(false);
+        this.statusMessage.set('Error: ' + (error.error?.error || error.message));
+        
+        // Clear the file input
+        const input = this.cameraInput();
+        if (input) {
+          input.nativeElement.value = '';
+        }
+      }
+    });
   }
 }

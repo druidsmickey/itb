@@ -1,13 +1,17 @@
 const express = require('express');
 const router = express.Router();
-const { Client, LocalAuth } = require('whatsapp-web.js');
+const { Client, LocalAuth, MessageMedia } = require('whatsapp-web.js');
 const qrcode = require('qrcode-terminal');
 const fs = require('fs');
 const path = require('path');
 const { execSync } = require('child_process');
+const multer = require('multer');
 const WhatsappContact = require('../models/whatsappContact');
 const WhatsappGroup = require('../models/whatsappGroup');
 const WhatsappMessage = require('../models/whatsappMessage');
+
+// Configure multer for memory storage
+const upload = multer({ storage: multer.memoryStorage() });
 
 let client = null;
 let isReady = false;
@@ -1063,6 +1067,108 @@ router.post('/delete-messages', async (req, res) => {
     });
   } catch (error) {
     console.error('Error deleting messages:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// POST: Send image to group
+router.post('/send-image-to-group', upload.single('image'), async (req, res) => {
+  try {
+    if (!client || !isReady) {
+      return res.status(400).json({ error: 'WhatsApp client is not ready. Please initialize first.' });
+    }
+
+    const { groupId, caption } = req.body;
+    const imageFile = req.file;
+
+    if (!groupId) {
+      return res.status(400).json({ error: 'Group ID is required' });
+    }
+
+    if (!imageFile) {
+      return res.status(400).json({ error: 'Image file is required' });
+    }
+
+    const group = await WhatsappGroup.findById(groupId);
+    if (!group) {
+      return res.status(404).json({ error: 'Group not found' });
+    }
+
+    if (group.contactIds.length === 0) {
+      return res.status(400).json({ error: 'Group has no contacts' });
+    }
+
+    // Create MessageMedia from buffer
+    const media = new MessageMedia(
+      imageFile.mimetype,
+      imageFile.buffer.toString('base64'),
+      imageFile.originalname
+    );
+
+    const results = [];
+    const messageIds = [];
+    let successCount = 0;
+    
+    for (const contactId of group.contactIds) {
+      const contact = await WhatsappContact.findById(contactId);
+      if (!contact) {
+        results.push({ 
+          contactId: contactId.toString(), 
+          success: false, 
+          error: 'Contact not found' 
+        });
+        continue;
+      }
+
+      try {
+        const sentMessage = await client.sendMessage(contact.number, media, { caption: caption || '' });
+        results.push({ 
+          contactId: contactId.toString(), 
+          name: contact.name,
+          success: true 
+        });
+        
+        // Store message ID for potential deletion
+        messageIds.push({
+          contactId: contactId,
+          contactName: contact.name,
+          whatsappMessageId: sentMessage.id._serialized,
+          chatId: contact.number,
+          timestamp: sentMessage.timestamp
+        });
+        
+        successCount++;
+        
+        // Add a small delay between messages to avoid rate limiting
+        await new Promise(resolve => setTimeout(resolve, 1000));
+      } catch (error) {
+        console.error(`Error sending image to ${contact.name}:`, error);
+        results.push({ 
+          contactId: contactId.toString(), 
+          name: contact.name,
+          success: false, 
+          error: error.message 
+        });
+      }
+    }
+
+    // Save to message history
+    await WhatsappMessage.create({
+      groupId: group._id,
+      groupName: group.name,
+      message: caption ? `📷 Image: ${caption}` : '📷 Image',
+      messageIds
+    });
+
+    res.json({ 
+      success: true,
+      message: `Image sent to ${successCount} of ${group.contactIds.length} contact(s)`,
+      successCount,
+      totalContacts: group.contactIds.length,
+      results
+    });
+  } catch (error) {
+    console.error('Error sending image to group:', error);
     res.status(500).json({ error: error.message });
   }
 });

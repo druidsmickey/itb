@@ -31,12 +31,12 @@
             </div>
 
             <mat-form-field appearance="outline" class="message-field">
-              <mat-label>Message</mat-label>
+              <mat-label>Message / Caption</mat-label>
               <textarea matInput 
                         [(ngModel)]="message"
                         rows="8"
-                        placeholder="Type your message here..."></textarea>
-              <mat-hint>Use *bold*, _italic_, ~strikethrough~ for formatting</mat-hint>
+                        placeholder="Type your message here or leave empty for photos..."></textarea>
+              <mat-hint>Use *bold*, _italic_, ~strikethrough~ for formatting. Text will be used as photo caption.</mat-hint>
             </mat-form-field>
           </mat-card-content>
           <mat-card-actions>
@@ -44,11 +44,19 @@
                     (click)="sendMessageToGroup()"
                     [disabled]="!status().isReady || loading() || !selectedGroup() || !message()">
               <mat-icon>send</mat-icon>
-              Send to Group
+              Send Message
+            </button>
+            <button mat-raised-button color="accent"
+                    (click)="triggerCamera()"
+                    [disabled]="!status().isReady || loading() || !selectedGroup()">
+              <mat-icon>photo_camera</mat-icon>
+              Send Photo
             </button>
             <button mat-stroked-button (click)="message.set('Close')">
               Quick: Close
             </button>
+            <input #cameraInput type="file" accept="image/*" capture="environment" 
+                   (change)="onImageSelected($event)" style="display: none;">
           </mat-card-actions>
         </mat-card>
 
@@ -352,7 +360,7 @@
                           {{ group.name }}
                         </span>
                         <span class="group-details">
-                          {{ group.contactCount }} contact(s) - {{ getGroupContactNames(group) }}
+                          {{ group.contactCount }} contact(s) 
                         </span>
                       </div>
                       <div class="group-actions">
