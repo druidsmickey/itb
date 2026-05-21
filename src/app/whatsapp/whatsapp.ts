@@ -762,8 +762,81 @@ export class Whatsapp implements OnInit, OnDestroy {
     const input = event.target as HTMLInputElement;
     if (input.files && input.files.length > 0) {
       const file = input.files[0];
-      this.sendImageToGroup(file);
+      this.compressAndSendImage(file);
     }
+  }
+
+  protected async compressAndSendImage(file: File) {
+    try {
+      this.loading.set(true);
+      this.statusMessage.set('Compressing image...');
+
+      const compressedFile = await this.compressImage(file);
+      this.sendImageToGroup(compressedFile);
+    } catch (error) {
+      this.loading.set(false);
+      this.statusMessage.set('Error compressing image: ' + error);
+    }
+  }
+
+  protected compressImage(file: File): Promise<File> {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      
+      reader.onload = (e) => {
+        const img = new Image();
+        img.src = e.target?.result as string;
+        
+        img.onload = () => {
+          const canvas = document.createElement('canvas');
+          let width = img.width;
+          let height = img.height;
+          
+          // Resize if image is too large (max 1920px on longest side)
+          const maxSize = 1920;
+          if (width > maxSize || height > maxSize) {
+            if (width > height) {
+              height = (height / width) * maxSize;
+              width = maxSize;
+            } else {
+              width = (width / height) * maxSize;
+              height = maxSize;
+            }
+          }
+          
+          canvas.width = width;
+          canvas.height = height;
+          
+          const ctx = canvas.getContext('2d');
+          if (!ctx) {
+            reject('Could not get canvas context');
+            return;
+          }
+          
+          ctx.drawImage(img, 0, 0, width, height);
+          
+          // Compress to JPEG with 85% quality
+          canvas.toBlob((blob) => {
+            if (!blob) {
+              reject('Could not compress image');
+              return;
+            }
+            
+            const compressedFile = new File([blob], file.name, {
+              type: 'image/jpeg',
+              lastModified: Date.now()
+            });
+            
+            resolve(compressedFile);
+          }, 'image/jpeg', 0.85);
+        };
+        
+        img.onerror = () => reject('Could not load image');
+      };
+      
+      reader.onerror = () => reject('Could not read file');
+    });
   }
 
   protected sendImageToGroup(imageFile: File) {
