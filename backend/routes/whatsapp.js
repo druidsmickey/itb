@@ -1072,6 +1072,11 @@ router.post('/delete-messages', async (req, res) => {
         });
 
         totalDeleted++;
+
+        // Wait 1 second between each message to avoid rate limiting
+        if (totalDeleted < messageIds.length) {
+          await new Promise(resolve => setTimeout(resolve, 1000));
+        }
       } catch (error) {
         deletionResults.push({
           messageId: msgId,
