@@ -747,6 +747,36 @@ export class Whatsapp implements OnInit, OnDestroy {
     });
   }
 
+  protected deleteAllMessages() {
+    const messages = this.sentMessages();
+    if (messages.length === 0) {
+      return;
+    }
+
+    if (!confirm(`Are you sure you want to delete all ${messages.length} message(s)? This will delete them for everyone.`)) {
+      return;
+    }
+
+    this.loading.set(true);
+    this.statusMessage.set('Deleting all messages...');
+
+    const messageIds = messages.map(m => m.id);
+
+    this.http.post<any>(`${this.apiUrl}/api/whatsapp/delete-messages`, {
+      messageIds
+    }).subscribe({
+      next: (response) => {
+        this.loading.set(false);
+        this.statusMessage.set(response.message);
+        this.loadMessageHistory(); // Reload message history
+      },
+      error: (error) => {
+        this.loading.set(false);
+        this.statusMessage.set('Error: ' + (error.error?.error || error.message));
+      }
+    });
+  }
+
   protected getGroupContactNames(group: Group): string {
     console.log('Getting contact names for group:', group.name);
     console.log('Group contact IDs:', group.contactIds);
