@@ -1,3 +1,2 @@
-2026/05/21-18:29:52.417 1a04 Reusing MANIFEST C:\itb\backend\.wwebjs_auth\session-itb-whatsapp-client\Default\Local Storage\leveldb/MANIFEST-000001
-2026/05/21-18:29:52.425 1a04 Recovering log #3
-2026/05/21-18:29:52.427 1a04 Reusing old log C:\itb\backend\.wwebjs_auth\session-itb-whatsapp-client\Default\Local Storage\leveldb/000003.log 
+2026/05/27-14:08:59.616 348c Creating DB C:\itb\backend\.wwebjs_auth\session-itb-whatsapp-client\Default\Local Storage\leveldb since it was missing.
+2026/05/27-14:08:59.638 348c Reusing MANIFEST C:\itb\backend\.wwebjs_auth\session-itb-whatsapp-client\Default\Local Storage\leveldb/MANIFEST-000001

@@ -39,6 +39,15 @@ interface Group {
   updatedAt: Date;
 }
 
+interface Broadcast {
+  id: string;
+  name: string;
+  contactIds: string[];
+  contactCount: number;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
 interface WhatsAppStatus {
   status: string;
   isReady: boolean;
@@ -93,6 +102,12 @@ export class Whatsapp implements OnInit, OnDestroy {
   protected selectedContactsForGroup = signal<Set<string>>(new Set());
   protected editingGroup = signal<Group | null>(null);
   
+  protected broadcasts = signal<Broadcast[]>([]);
+  protected selectedBroadcast = signal<string | null>(null);
+  protected newBroadcastName = signal('');
+  protected selectedContactsForBroadcast = signal<Set<string>>(new Set());
+  protected editingBroadcast = signal<Broadcast | null>(null);
+  
   protected newContactName = signal('');
   protected newContactNumber = signal('');
   protected message = signal('');
@@ -110,6 +125,7 @@ export class Whatsapp implements OnInit, OnDestroy {
   ngOnInit() {
     this.loadContacts();
     this.loadGroups();
+    this.loadBroadcasts();
     this.loadSelectedGroup();
     this.checkStatus();
     this.startStatusPolling();
@@ -772,7 +788,13 @@ export class Whatsapp implements OnInit, OnDestroy {
       this.statusMessage.set('Compressing image...');
 
       const compressedFile = await this.compressImage(file);
-      this.sendImageToGroup(compressedFile);
+      
+      // Send to either group or broadcast list
+      if (this.selectedBroadcast()) {
+        this.sendImageToBroadcast(compressedFile);
+      } else {
+        this.sendImageToGroup(compressedFile);
+      }
     } catch (error) {
       this.loading.set(false);
       this.statusMessage.set('Error compressing image: ' + error);
@@ -886,5 +908,235 @@ export class Whatsapp implements OnInit, OnDestroy {
         }
       }
     });
+  }
+
+  // ============================================
+  // BROADCAST LIST METHODS
+  // ============================================
+
+  protected loadBroadcasts() {
+    this.http.get<{ broadcasts: Broadcast[] }>(`${this.apiUrl}/api/whatsapp/broadcasts`).subscribe({
+      next: (response) => {
+        this.broadcasts.set(response.broadcasts);
+      },
+      error: (error) => {
+        console.error('Error loading broadcasts:', error);
+        this.statusMessage.set('Error loading broadcasts: ' + (error.error?.error || error.message));
+      }
+    });
+  }
+
+  protected createBroadcast() {
+    const name = this.newBroadcastName().trim();
+    
+    if (!name) {
+      this.statusMessage.set('Please enter a broadcast list name');
+      return;
+    }
+
+    const contactIds = Array.from(this.selectedContactsForBroadcast());
+    
+    if (contactIds.length === 0) {
+      this.statusMessage.set('Please select at least one contact');
+      return;
+    }
+
+    this.loading.set(true);
+
+    this.http.post<any>(`${this.apiUrl}/api/whatsapp/broadcasts`, {
+      name,
+      contactIds
+    }).subscribe({
+      next: (response) => {
+        this.loading.set(false);
+        this.statusMessage.set(response.message);
+        this.newBroadcastName.set('');
+        this.selectedContactsForBroadcast.set(new Set());
+        this.loadBroadcasts();
+      },
+      error: (error) => {
+        this.loading.set(false);
+        this.statusMessage.set('Error: ' + (error.error?.error || error.message));
+      }
+    });
+  }
+
+  protected editBroadcast(broadcast: Broadcast) {
+    this.editingBroadcast.set(broadcast);
+    this.newBroadcastName.set(broadcast.name);
+    this.selectedContactsForBroadcast.set(new Set(broadcast.contactIds));
+  }
+
+  protected cancelEditBroadcast() {
+    this.editingBroadcast.set(null);
+    this.newBroadcastName.set('');
+    this.selectedContactsForBroadcast.set(new Set());
+  }
+
+  protected updateBroadcast() {
+    const broadcast = this.editingBroadcast();
+    
+    if (!broadcast) return;
+
+    const name = this.newBroadcastName().trim();
+    
+    if (!name) {
+      this.statusMessage.set('Please enter a broadcast list name');
+      return;
+    }
+
+    const contactIds = Array.from(this.selectedContactsForBroadcast());
+    
+    if (contactIds.length === 0) {
+      this.statusMessage.set('Please select at least one contact');
+      return;
+    }
+
+    this.loading.set(true);
+
+    this.http.put<any>(`${this.apiUrl}/api/whatsapp/broadcasts/${broadcast.id}`, {
+      name,
+      contactIds
+    }).subscribe({
+      next: (response) => {
+        this.loading.set(false);
+        this.statusMessage.set(response.message);
+        this.editingBroadcast.set(null);
+        this.newBroadcastName.set('');
+        this.selectedContactsForBroadcast.set(new Set());
+        this.loadBroadcasts();
+      },
+      error: (error) => {
+        this.loading.set(false);
+        this.statusMessage.set('Error: ' + (error.error?.error || error.message));
+      }
+    });
+  }
+
+  protected deleteBroadcast(broadcastId: string) {
+    if (!confirm('Are you sure you want to delete this broadcast list?')) {
+      return;
+    }
+
+    this.http.delete<any>(`${this.apiUrl}/api/whatsapp/broadcasts/${broadcastId}`).subscribe({
+      next: (response) => {
+        this.statusMessage.set('Broadcast list deleted successfully');
+        this.loadBroadcasts();
+      },
+      error: (error) => {
+        this.statusMessage.set('Error: ' + (error.error?.error || error.message));
+      }
+    });
+  }
+
+  protected toggleContactForBroadcast(contactId: string) {
+    const selected = new Set(this.selectedContactsForBroadcast());
+    if (selected.has(contactId)) {
+      selected.delete(contactId);
+    } else {
+      selected.add(contactId);
+    }
+    this.selectedContactsForBroadcast.set(selected);
+  }
+
+  protected selectAllContactsForBroadcast() {
+    const allIds = new Set(this.contacts().map(c => c.id));
+    this.selectedContactsForBroadcast.set(allIds);
+  }
+
+  protected deselectAllContactsForBroadcast() {
+    this.selectedContactsForBroadcast.set(new Set());
+  }
+
+  protected sendMessageToBroadcast() {
+    const broadcastId = this.selectedBroadcast();
+    
+    if (!broadcastId) {
+      this.statusMessage.set('Please select a broadcast list');
+      return;
+    }
+
+    if (!this.message()) {
+      this.statusMessage.set('Please enter a message');
+      return;
+    }
+
+    this.loading.set(true);
+    this.statusMessage.set('Sending messages...');
+
+    this.http.post<any>(`${this.apiUrl}/api/whatsapp/send-to-broadcast`, {
+      broadcastId,
+      message: this.message()
+    }).subscribe({
+      next: (response) => {
+        this.loading.set(false);
+        this.statusMessage.set(response.message);
+        this.message.set('');
+      },
+      error: (error) => {
+        this.loading.set(false);
+        this.statusMessage.set('Error: ' + (error.error?.error || error.message));
+      }
+    });
+  }
+
+  protected sendImageToBroadcast(imageFile: File) {
+    const broadcastId = this.selectedBroadcast();
+    
+    if (!broadcastId) {
+      this.statusMessage.set('Please select a broadcast list');
+      return;
+    }
+
+    this.loading.set(true);
+    this.statusMessage.set('Sending image to broadcast list...');
+
+    // Create FormData to send the image
+    const formData = new FormData();
+    formData.append('broadcastId', broadcastId);
+    formData.append('image', imageFile);
+    
+    // Add caption if there's a message
+    const messageText = this.message();
+    if (messageText) {
+      formData.append('caption', messageText);
+    }
+
+    this.http.post<any>(`${this.apiUrl}/api/whatsapp/send-image-to-broadcast`, formData).subscribe({
+      next: (response) => {
+        this.loading.set(false);
+        this.statusMessage.set(response.message);
+        this.message.set('');
+        
+        // Clear the file input
+        const input = this.cameraInput();
+        if (input) {
+          input.nativeElement.value = '';
+        }
+      },
+      error: (error) => {
+        this.loading.set(false);
+        this.statusMessage.set('Error: ' + (error.error?.error || error.message));
+        
+        // Clear the file input
+        const input = this.cameraInput();
+        if (input) {
+          input.nativeElement.value = '';
+        }
+      }
+    });
+  }
+
+  protected getBroadcastContactNames(broadcast: Broadcast): string {
+    const contactNames = broadcast.contactIds
+      .map(id => {
+        const contact = this.contacts().find(c => c.id === id);
+        return contact?.name;
+      })
+      .filter(name => name);
+    
+    if (contactNames.length === 0) return 'No contacts';
+    if (contactNames.length <= 3) return contactNames.join(', ');
+    return `${contactNames.slice(0, 3).join(', ')} +${contactNames.length - 3} more`;
   }
 }

@@ -1,3 +1,2 @@
-2026/05/21-18:29:52.493 2468 Reusing MANIFEST C:\itb\backend\.wwebjs_auth\session-itb-whatsapp-client\Default\shared_proto_db\metadata/MANIFEST-000001
-2026/05/21-18:29:52.494 2468 Recovering log #3
-2026/05/21-18:29:52.495 2468 Reusing old log C:\itb\backend\.wwebjs_auth\session-itb-whatsapp-client\Default\shared_proto_db\metadata/000003.log 
+2026/05/27-14:08:59.554 14b0 Creating DB C:\itb\backend\.wwebjs_auth\session-itb-whatsapp-client\Default\shared_proto_db\metadata since it was missing.
+2026/05/27-14:08:59.560 14b0 Reusing MANIFEST C:\itb\backend\.wwebjs_auth\session-itb-whatsapp-client\Default\shared_proto_db\metadata/MANIFEST-000001

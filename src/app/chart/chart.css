@@ -327,7 +327,7 @@ mat-radio-button {
   background: #3a73a8 !important;
 }
 .race-table tbody tr.winner-row {
-  background: #1e3a8a !important;
+  background: #f26a8d !important;
   color: white;
   font-weight: 600;
 }
@@ -337,7 +337,7 @@ mat-radio-button {
 }
 
 .race-table tbody tr.winner-row:hover {
-  background: #1e40af !important;
+  background: #d55a7a !important;
 }
 
 .race-table tbody tr:last-child td {

@@ -15,17 +15,33 @@
             }
 
             <div class="group-selection">
-              @if (groups().length === 0) {
-                <p class="hint-text">No groups available. Create a group in the Groups tab first.</p>
+              @if (groups().length === 0 && broadcasts().length === 0) {
+                <p class="hint-text">No groups or broadcast lists available. Create one in the Groups or Broadcast Lists tab first.</p>
               } @else {
                 <div class="group-radio-list">
-                  <mat-radio-group [(ngModel)]="selectedGroup" (ngModelChange)="saveSelectedGroup()" class="group-radio-group">
-                    @for (group of groups(); track group.id) {
-                      <mat-radio-button [value]="group.id" class="group-radio-button">
-                        {{ group.name }}
-                      </mat-radio-button>
-                    }
-                  </mat-radio-group>
+                  @if (groups().length > 0) {
+                    <h4 style="margin: 10px 0 5px; font-size: 0.9em; color: #666;">Groups:</h4>
+                    <mat-radio-group [(ngModel)]="selectedGroup" (ngModelChange)="saveSelectedGroup(); selectedBroadcast.set(null)" class="group-radio-group">
+                      @for (group of groups(); track group.id) {
+                        <mat-radio-button [value]="group.id" class="group-radio-button">
+                          <mat-icon style="vertical-align: middle; margin-right: 5px; font-size: 18px;">group</mat-icon>
+                          {{ group.name }}
+                        </mat-radio-button>
+                      }
+                    </mat-radio-group>
+                  }
+                  
+                  @if (broadcasts().length > 0) {
+                    <h4 style="margin: 15px 0 5px; font-size: 0.9em; color: #666;">Broadcast Lists:</h4>
+                    <mat-radio-group [(ngModel)]="selectedBroadcast" (ngModelChange)="selectedGroup.set(null)" class="group-radio-group">
+                      @for (broadcast of broadcasts(); track broadcast.id) {
+                        <mat-radio-button [value]="broadcast.id" class="group-radio-button">
+                          <mat-icon style="vertical-align: middle; margin-right: 5px; font-size: 18px;">campaign</mat-icon>
+                          {{ broadcast.name }}
+                        </mat-radio-button>
+                      }
+                    </mat-radio-group>
+                  }
                 </div>
               }
             </div>
@@ -41,14 +57,14 @@
           </mat-card-content>
           <mat-card-actions>
             <button mat-raised-button color="primary" 
-                    (click)="sendMessageToGroup()"
-                    [disabled]="!status().isReady || loading() || !selectedGroup() || !message()">
+                    (click)="selectedGroup() ? sendMessageToGroup() : sendMessageToBroadcast()"
+                    [disabled]="!status().isReady || loading() || (!selectedGroup() && !selectedBroadcast()) || !message()">
               <mat-icon>send</mat-icon>
-              Send Message
+              Send {{ selectedBroadcast() ? 'Broadcast' : 'Message' }}
             </button>
             <button mat-raised-button color="accent"
                     (click)="triggerCamera()"
-                    [disabled]="!status().isReady || loading() || !selectedGroup()">
+                    [disabled]="!status().isReady || loading() || (!selectedGroup() && !selectedBroadcast())">
               <mat-icon>photo_camera</mat-icon>
               Send Photo
             </button>
@@ -371,6 +387,121 @@
                         </button>
                         <button mat-icon-button color="warn" 
                                 (click)="deleteGroup(group.id)"
+                                matTooltip="Delete">
+                          <mat-icon>delete</mat-icon>
+                        </button>
+                      </div>
+                    </div>
+                  </mat-list-item>
+                }
+              </mat-list>
+            }
+          </mat-card-content>
+        </mat-card>
+      </div>
+    </mat-tab>
+
+    <!-- Broadcast Lists Tab -->
+    <mat-tab label="Broadcast Lists">
+      <div class="tab-content">
+        <mat-card>
+          <mat-card-header>
+            <mat-card-title>{{ editingBroadcast() ? 'Edit Broadcast List' : 'Create New Broadcast List' }}</mat-card-title>
+          </mat-card-header>
+          <mat-card-content>
+            <mat-form-field appearance="outline" class="form-field">
+              <mat-label>Broadcast List Name</mat-label>
+              <input matInput 
+                     [(ngModel)]="newBroadcastName"
+                     placeholder="e.g., Important Clients, Daily News">
+            </mat-form-field>
+
+            <div class="group-contact-selection">
+              <p><strong>Select Contacts for Broadcast List:</strong></p>
+              <p class="hint-text" style="font-size: 0.85em; color: #666; margin: 5px 0;">
+                📢 Messages will be sent as individual messages to each contact (like WhatsApp Broadcast)
+              </p>
+              
+              @if (contacts().length === 0) {
+                <p class="no-contacts">No contacts available. Add contacts first.</p>
+              } @else {
+                <div class="selection-controls">
+                  <p>Selected: {{ selectedContactsForBroadcast().size }} / {{ contacts().length }} contacts</p>
+                  <div class="selection-buttons">
+                    <button mat-button (click)="selectAllContactsForBroadcast()">Select All</button>
+                    <button mat-button (click)="deselectAllContactsForBroadcast()">Deselect All</button>
+                  </div>
+                </div>
+
+                <div class="contact-selection-list">
+                  <mat-list>
+                    @for (contact of contacts(); track contact.id) {
+                      <mat-list-item>
+                        <div class="contact-item-simple">
+                          <mat-checkbox 
+                            [checked]="selectedContactsForBroadcast().has(contact.id)"
+                            (change)="toggleContactForBroadcast(contact.id)">
+                            {{ contact.name }}
+                          </mat-checkbox>
+                        </div>
+                      </mat-list-item>
+                    }
+                  </mat-list>
+                </div>
+              }
+            </div>
+          </mat-card-content>
+          <mat-card-actions>
+            @if (editingBroadcast()) {
+              <button mat-raised-button color="primary" 
+                      (click)="updateBroadcast()"
+                      [disabled]="loading() || !newBroadcastName() || selectedContactsForBroadcast().size === 0">
+                <mat-icon>save</mat-icon>
+                Update Broadcast List
+              </button>
+              <button mat-button (click)="cancelEditBroadcast()">
+                Cancel
+              </button>
+            } @else {
+              <button mat-raised-button color="primary" 
+                      (click)="createBroadcast()"
+                      [disabled]="loading() || !newBroadcastName() || selectedContactsForBroadcast().size === 0">
+                <mat-icon>add</mat-icon>
+                Create Broadcast List
+              </button>
+            }
+          </mat-card-actions>
+        </mat-card>
+
+        <mat-card class="groups-list-card">
+          <mat-card-header>
+            <mat-card-title>My Broadcast Lists ({{ broadcasts().length }})</mat-card-title>
+          </mat-card-header>
+          <mat-card-content>
+            @if (broadcasts().length === 0) {
+              <p class="no-contacts">No broadcast lists created yet</p>
+            } @else {
+              <mat-list>
+                @for (broadcast of broadcasts(); track broadcast.id) {
+                  <mat-list-item>
+                    <div class="group-item">
+                      <div class="group-info">
+                        <span class="group-name">
+                          <mat-icon>campaign</mat-icon>
+                          {{ broadcast.name }}
+                        </span>
+                        <span class="group-details">
+                          {{ broadcast.contactCount }} contact(s) 
+                        </span>
+                      </div>
+                      <div class="group-actions">
+                        <button mat-icon-button color="primary" 
+                                (click)="editBroadcast(broadcast)"
+                                matTooltip="Edit">
+                          <mat-icon>edit</mat-icon>
+                        </button>
+                        <button mat-icon-button color="warn" 
+                                (click)="deleteBroadcast(broadcast.id)"
                                 matTooltip="Delete">
                           <mat-icon>delete</mat-icon>
                         </button>

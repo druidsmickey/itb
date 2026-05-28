@@ -9,6 +9,7 @@ const multer = require('multer');
 const WhatsappContact = require('../models/whatsappContact');
 const WhatsappGroup = require('../models/whatsappGroup');
 const WhatsappMessage = require('../models/whatsappMessage');
+const WhatsappBroadcast = require('../models/whatsappBroadcast');
 
 // Configure multer for memory storage with 50MB limit
 const upload = multer({ 
@@ -22,8 +23,34 @@ let qrCodeData = null;
 let clientStatus = 'disconnected';
 let initializationTimeout = null;
 
+// Batch sending configuration
+const BATCH_SIZE = 7; // Send 7 messages at a time
+const BATCH_DELAY = 1000; // 1 second delay between batches
+
 // Path to LocalAuth session data
 const authPath = path.join(__dirname, '..', '.wwebjs_auth');
+
+// Helper function to send messages in batches
+async function sendInBatches(items, sendFunction) {
+  const results = [];
+  
+  // Split items into batches of BATCH_SIZE
+  for (let i = 0; i < items.length; i += BATCH_SIZE) {
+    const batch = items.slice(i, i + BATCH_SIZE);
+    
+    // Send all messages in current batch in parallel
+    const batchPromises = batch.map(item => sendFunction(item));
+    const batchResults = await Promise.all(batchPromises);
+    results.push(...batchResults);
+    
+    // Wait before next batch (except for last batch)
+    if (i + BATCH_SIZE < items.length) {
+      await new Promise(resolve => setTimeout(resolve, BATCH_DELAY));
+    }
+  }
+  
+  return results;
+}
 
 // Find Chrome/Chromium executable
 function findChrome() {
@@ -609,34 +636,29 @@ router.post('/send-bulk', async (req, res) => {
       return res.status(400).json({ error: 'Message is required' });
     }
 
-    const results = [];
-    
-    for (const contactId of contactIds) {
+    // Send messages in batches (7 at a time with 1s delay)
+    const results = await sendInBatches(contactIds, async (contactId) => {
       const contact = await WhatsappContact.findById(contactId);
       if (!contact) {
-        results.push({ contactId, success: false, error: 'Contact not found' });
-        continue;
+        return { contactId, success: false, error: 'Contact not found' };
       }
 
       try {
         await client.sendMessage(contact.number, message);
-        results.push({ 
+        return { 
           contactId, 
           name: contact.name,
           success: true 
-        });
-        
-        // Add a small delay between messages to avoid rate limiting
-        await new Promise(resolve => setTimeout(resolve, 1000));
+        };
       } catch (error) {
-        results.push({ 
+        return { 
           contactId, 
           name: contact.name,
           success: false, 
           error: error.message 
-        });
+        };
       }
-    }
+    });
 
     res.json({ 
       success: true, 
@@ -902,23 +924,17 @@ router.post('/send-to-group', async (req, res) => {
       return res.status(400).json({ error: 'Group has no contacts' });
     }
 
-    const results = [];
     const messageIds = [];
     
-    for (const contactId of group.contactIds) {
+    // Send messages in batches (7 at a time with 1s delay)
+    const results = await sendInBatches(group.contactIds, async (contactId) => {
       const contact = await WhatsappContact.findById(contactId);
       if (!contact) {
-        results.push({ contactId: contactId.toString(), success: false, error: 'Contact not found' });
-        continue;
+        return { contactId: contactId.toString(), success: false, error: 'Contact not found' };
       }
 
       try {
         const sentMessage = await client.sendMessage(contact.number, message);
-        results.push({ 
-          contactId: contactId.toString(), 
-          name: contact.name,
-          success: true 
-        });
 
         // Store message ID for potential deletion
         messageIds.push({
@@ -929,17 +945,20 @@ router.post('/send-to-group', async (req, res) => {
           timestamp: sentMessage.timestamp
         });
         
-        // Add a small delay between messages to avoid rate limiting
-        await new Promise(resolve => setTimeout(resolve, 1000));
+        return { 
+          contactId: contactId.toString(), 
+          name: contact.name,
+          success: true 
+        };
       } catch (error) {
-        results.push({ 
+        return { 
           contactId: contactId.toString(), 
           name: contact.name,
           success: false, 
           error: error.message 
-        });
+        };
       }
-    }
+    });
 
     const successCount = results.filter(r => r.success).length;
 
@@ -1108,28 +1127,21 @@ router.post('/send-image-to-group', upload.single('image'), async (req, res) => 
       imageFile.originalname
     );
 
-    const results = [];
     const messageIds = [];
-    let successCount = 0;
     
-    for (const contactId of group.contactIds) {
+    // Send images in batches (7 at a time with 1s delay)
+    const results = await sendInBatches(group.contactIds, async (contactId) => {
       const contact = await WhatsappContact.findById(contactId);
       if (!contact) {
-        results.push({ 
+        return { 
           contactId: contactId.toString(), 
           success: false, 
           error: 'Contact not found' 
-        });
-        continue;
+        };
       }
 
       try {
         const sentMessage = await client.sendMessage(contact.number, media, { caption: caption || '' });
-        results.push({ 
-          contactId: contactId.toString(), 
-          name: contact.name,
-          success: true 
-        });
         
         // Store message ID for potential deletion
         messageIds.push({
@@ -1140,20 +1152,23 @@ router.post('/send-image-to-group', upload.single('image'), async (req, res) => 
           timestamp: sentMessage.timestamp
         });
         
-        successCount++;
-        
-        // Add a small delay between messages to avoid rate limiting
-        await new Promise(resolve => setTimeout(resolve, 1000));
+        return { 
+          contactId: contactId.toString(), 
+          name: contact.name,
+          success: true 
+        };
       } catch (error) {
         console.error(`Error sending image to ${contact.name}:`, error);
-        results.push({ 
+        return { 
           contactId: contactId.toString(), 
           name: contact.name,
           success: false, 
           error: error.message 
-        });
+        };
       }
-    }
+    });
+
+    const successCount = results.filter(r => r.success).length;
 
     // Save to message history
     await WhatsappMessage.create({
@@ -1172,6 +1187,301 @@ router.post('/send-image-to-group', upload.single('image'), async (req, res) => 
     });
   } catch (error) {
     console.error('Error sending image to group:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// ============================================
+// BROADCAST LIST ROUTES
+// ============================================
+
+// GET: Get all broadcast lists
+router.get('/broadcasts', async (req, res) => {
+  try {
+    const broadcasts = await WhatsappBroadcast.find().sort({ name: 1 });
+    
+    const broadcastsWithCounts = broadcasts.map(broadcast => ({
+      id: broadcast._id.toString(),
+      name: broadcast.name,
+      contactIds: broadcast.contactIds.map(id => id.toString()),
+      contactCount: broadcast.contactIds.length,
+      createdAt: broadcast.createdAt,
+      updatedAt: broadcast.updatedAt
+    }));
+
+    res.json({ broadcasts: broadcastsWithCounts });
+  } catch (error) {
+    console.error('Error fetching broadcasts:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// POST: Create a new broadcast list
+router.post('/broadcasts', async (req, res) => {
+  try {
+    const { name, contactIds } = req.body;
+
+    if (!name || !contactIds || !Array.isArray(contactIds)) {
+      return res.status(400).json({ error: 'Name and contact IDs array are required' });
+    }
+
+    // Check if broadcast name already exists
+    const existingBroadcast = await WhatsappBroadcast.findOne({ name: { $regex: new RegExp(`^${name}$`, 'i') } });
+    if (existingBroadcast) {
+      return res.status(400).json({ error: 'Broadcast list name already exists' });
+    }
+
+    // Validate contact IDs exist
+    const validContactIds = [];
+    for (const id of contactIds) {
+      const contact = await WhatsappContact.findById(id);
+      if (contact) {
+        validContactIds.push(id);
+      }
+    }
+
+    const newBroadcast = await WhatsappBroadcast.create({
+      name,
+      contactIds: validContactIds
+    });
+    
+    res.json({ 
+      success: true, 
+      message: 'Broadcast list created successfully',
+      broadcast: {
+        id: newBroadcast._id.toString(),
+        name: newBroadcast.name,
+        contactIds: newBroadcast.contactIds.map(id => id.toString()),
+        contactCount: newBroadcast.contactIds.length,
+        createdAt: newBroadcast.createdAt,
+        updatedAt: newBroadcast.updatedAt
+      }
+    });
+  } catch (error) {
+    console.error('Error creating broadcast list:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// PUT: Update a broadcast list
+router.put('/broadcasts/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { name, contactIds } = req.body;
+
+    if (!name || !contactIds || !Array.isArray(contactIds)) {
+      return res.status(400).json({ error: 'Name and contact IDs array are required' });
+    }
+
+    // Check if another broadcast with this name exists
+    const existingBroadcast = await WhatsappBroadcast.findOne({
+      name: { $regex: new RegExp(`^${name}$`, 'i') },
+      _id: { $ne: id }
+    });
+    if (existingBroadcast) {
+      return res.status(400).json({ error: 'Broadcast list name already exists' });
+    }
+
+    // Validate contact IDs exist
+    const validContactIds = [];
+    for (const contactId of contactIds) {
+      const contact = await WhatsappContact.findById(contactId);
+      if (contact) {
+        validContactIds.push(contactId);
+      }
+    }
+
+    const updatedBroadcast = await WhatsappBroadcast.findByIdAndUpdate(
+      id,
+      { 
+        name, 
+        contactIds: validContactIds,
+        updatedAt: new Date()
+      },
+      { new: true }
+    );
+
+    if (!updatedBroadcast) {
+      return res.status(404).json({ error: 'Broadcast list not found' });
+    }
+
+    res.json({ 
+      success: true, 
+      message: 'Broadcast list updated successfully',
+      broadcast: {
+        id: updatedBroadcast._id.toString(),
+        name: updatedBroadcast.name,
+        contactIds: updatedBroadcast.contactIds.map(id => id.toString()),
+        contactCount: updatedBroadcast.contactIds.length,
+        createdAt: updatedBroadcast.createdAt,
+        updatedAt: updatedBroadcast.updatedAt
+      }
+    });
+  } catch (error) {
+    console.error('Error updating broadcast list:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// DELETE: Delete a broadcast list
+router.delete('/broadcasts/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    
+    const deletedBroadcast = await WhatsappBroadcast.findByIdAndDelete(id);
+    
+    if (!deletedBroadcast) {
+      return res.status(404).json({ error: 'Broadcast list not found' });
+    }
+
+    res.json({ 
+      success: true, 
+      message: 'Broadcast list deleted successfully' 
+    });
+  } catch (error) {
+    console.error('Error deleting broadcast list:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// POST: Send message to broadcast list
+router.post('/send-to-broadcast', async (req, res) => {
+  try {
+    if (!client || !isReady) {
+      return res.status(400).json({ error: 'WhatsApp client is not ready. Please initialize first.' });
+    }
+
+    const { broadcastId, message } = req.body;
+
+    if (!broadcastId || !message) {
+      return res.status(400).json({ error: 'Broadcast ID and message are required' });
+    }
+
+    const broadcast = await WhatsappBroadcast.findById(broadcastId);
+    if (!broadcast) {
+      return res.status(404).json({ error: 'Broadcast list not found' });
+    }
+
+    if (!broadcast.contactIds || broadcast.contactIds.length === 0) {
+      return res.status(400).json({ error: 'Broadcast list has no contacts' });
+    }
+
+    // Send messages in batches (7 at a time with 1s delay)
+    const results = await sendInBatches(broadcast.contactIds, async (contactId) => {
+      const contact = await WhatsappContact.findById(contactId);
+      if (!contact) {
+        return { 
+          contactId: contactId.toString(), 
+          success: false, 
+          error: 'Contact not found' 
+        };
+      }
+
+      try {
+        await client.sendMessage(contact.number, message);
+        return { 
+          contactId: contactId.toString(), 
+          name: contact.name,
+          success: true 
+        };
+      } catch (error) {
+        return { 
+          contactId: contactId.toString(), 
+          name: contact.name,
+          success: false, 
+          error: error.message 
+        };
+      }
+    });
+
+    const successCount = results.filter(r => r.success).length;
+
+    res.json({ 
+      success: true,
+      message: `Broadcast sent: ${successCount}/${broadcast.contactIds.length} successful`,
+      successCount,
+      totalContacts: broadcast.contactIds.length,
+      results
+    });
+  } catch (error) {
+    console.error('Error sending to broadcast list:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// POST: Send image to broadcast list
+router.post('/send-image-to-broadcast', upload.single('image'), async (req, res) => {
+  try {
+    if (!client || !isReady) {
+      return res.status(400).json({ error: 'WhatsApp client is not ready. Please initialize first.' });
+    }
+
+    const { broadcastId, caption } = req.body;
+    const imageFile = req.file;
+
+    if (!broadcastId) {
+      return res.status(400).json({ error: 'Broadcast ID is required' });
+    }
+
+    if (!imageFile) {
+      return res.status(400).json({ error: 'Image file is required' });
+    }
+
+    const broadcast = await WhatsappBroadcast.findById(broadcastId);
+    if (!broadcast) {
+      return res.status(404).json({ error: 'Broadcast list not found' });
+    }
+
+    if (!broadcast.contactIds || broadcast.contactIds.length === 0) {
+      return res.status(400).json({ error: 'Broadcast list has no contacts' });
+    }
+
+    // Create MessageMedia from buffer
+    const media = new MessageMedia(
+      imageFile.mimetype,
+      imageFile.buffer.toString('base64'),
+      imageFile.originalname
+    );
+
+    // Send images in batches (7 at a time with 1s delay)
+    const results = await sendInBatches(broadcast.contactIds, async (contactId) => {
+      const contact = await WhatsappContact.findById(contactId);
+      if (!contact) {
+        return { 
+          contactId: contactId.toString(), 
+          success: false, 
+          error: 'Contact not found' 
+        };
+      }
+
+      try {
+        await client.sendMessage(contact.number, media, { caption: caption || '' });
+        return { 
+          contactId: contactId.toString(), 
+          name: contact.name,
+          success: true 
+        };
+      } catch (error) {
+        return { 
+          contactId: contactId.toString(), 
+          name: contact.name,
+          success: false, 
+          error: error.message 
+        };
+      }
+    });
+
+    const successCount = results.filter(r => r.success).length;
+
+    res.json({ 
+      success: true,
+      message: `Image broadcast sent: ${successCount}/${broadcast.contactIds.length} successful`,
+      successCount,
+      totalContacts: broadcast.contactIds.length,
+      results
+    });
+  } catch (error) {
+    console.error('Error sending image to broadcast list:', error);
     res.status(500).json({ error: error.message });
   }
 });
